@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F0F4FF">
+
+    <!-- Background decorative circles -->
+    <View
+        android:id="@+id/bgCircleTop"
+        android:layout_width="220dp"
+        android:layout_height="220dp"
+        android:background="@drawable/bg_circle_top"
+        android:alpha="0.12"
+        android:layout_marginEnd="-60dp"
+        android:layout_marginTop="-60dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <View
+        android:id="@+id/bgCircleBottom"
+        android:layout_width="180dp"
+        android:layout_height="180dp"
+        android:background="@drawable/bg_circle_bottom"
+        android:alpha="0.10"
+        android:layout_marginStart="-50dp"
+        android:layout_marginBottom="-50dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <!-- ScrollView wrapping the card -->
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:scrollbars="none"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_vertical"
+            android:minHeight="100dp"
+            android:paddingTop="40dp"
+            android:paddingBottom="40dp">
+
+            <!-- Main Card -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/loginCard"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="24dp"
+                android:layout_marginEnd="24dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="16dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingStart="28dp"
+                    android:paddingEnd="28dp"
+                    android:paddingTop="36dp"
+                    android:paddingBottom="32dp">
+
+                    <!-- App Icon -->
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        android:layout_gravity="center_horizontal"
+                        app:cardCornerRadius="18dp"
+                        app:cardElevation="8dp"
+                        app:cardBackgroundColor="#1A73E8">
+                        <ImageView
+                            android:layout_width="36dp"
+                            android:layout_height="36dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_school"
+                            app:tint="#FFFFFF" />
+                    </androidx.cardview.widget.CardView>
+
+                    <!-- App Name -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="16dp"
+                        android:text="VTracker"
+                        android:textSize="26sp"
+                        android:textStyle="bold"
+                        android:textColor="#0D1B4B"
+                        android:fontFamily="sans-serif-medium" />
+
+                    <!-- Subtitle -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="4dp"
+                        android:text="Faculty Location Tracking System"
+                        android:textSize="12.5sp"
+                        android:textColor="#8A93B2" />
+
+                    <!-- Divider -->
+                    <View
+                        android:layout_width="40dp"
+                        android:layout_height="3dp"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="16dp"
+                        android:background="#1A73E8"
+                        android:alpha="0.5" />
+
+                    <!-- ── Employee ID Label ── -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="28dp"
+                        android:text="Employee ID"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="#0D1B4B" />
+
+                    <!-- ── Employee ID Input ── -->
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:layout_marginTop="8dp"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="#F3F6FF">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:paddingStart="14dp"
+                            android:paddingEnd="14dp">
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_badge"
+                                app:tint="#8A93B2" />
+                            <EditText
+                                android:id="@+id/etEmployeeId"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:layout_marginStart="10dp"
+                                android:hint="EMP-XXXXXXXX"
+                                android:textColorHint="#B0B8CC"
+                                android:textColor="#0D1B4B"
+                                android:textSize="14sp"
+                                android:inputType="textPersonName"
+                                android:background="@null"
+                                android:imeOptions="actionNext"
+                                android:singleLine="true" />
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                    <!-- ── Password Label ── -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:text="Password"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="#0D1B4B" />
+
+                    <!-- ── Password Input ── -->
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:layout_marginTop="8dp"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="#F3F6FF">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:paddingStart="14dp"
+                            android:paddingEnd="10dp">
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_lock"
+                                app:tint="#8A93B2" />
+                            <EditText
+                                android:id="@+id/etPassword"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:layout_marginStart="10dp"
+                                android:hint="••••••••"
+                                android:textColorHint="#B0B8CC"
+                                android:textColor="#0D1B4B"
+                                android:textSize="14sp"
+                                android:inputType="textPassword"
+                                android:background="@null"
+                                android:imeOptions="actionDone"
+                                android:singleLine="true" />
+                            <ImageView
+                                android:id="@+id/ivTogglePassword"
+                                android:layout_width="36dp"
+                                android:layout_height="36dp"
+                                android:padding="8dp"
+                                android:src="@drawable/ic_visibility_off"
+                                app:tint="#8A93B2" />
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                    <!-- ══════════════════════════════════════════ -->
+                    <!--  Login As — ROLE SPINNER (after password)  -->
+                    <!-- ══════════════════════════════════════════ -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="18dp"
+                        android:text="Login As"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="#0D1B4B" />
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:layout_marginTop="8dp"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="#F3F6FF">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:paddingStart="14dp"
+                            android:paddingEnd="10dp">
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_badge"
+                                app:tint="#8A93B2" />
+                            <Spinner
+                                android:id="@+id/spinnerRole"
+                                android:layout_width="0dp"
+                                android:layout_height="match_parent"
+                                android:layout_weight="1"
+                                android:layout_marginStart="10dp"
+                                android:background="@null"
+                                android:spinnerMode="dropdown" />
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_arrow_forward"
+                                android:rotation="90"
+                                app:tint="#8A93B2" />
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                    <!-- ── Remember Me + Forgot Password ── -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginTop="14dp">
+                        <CheckBox
+                            android:id="@+id/cbRememberMe"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Remember me"
+                            android:textSize="12.5sp"
+                            android:textColor="#8A93B2"
+                            android:buttonTint="#1A73E8" />
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:layout_weight="1" />
+                        <TextView
+                            android:id="@+id/tvForgotPassword"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Forgot password?"
+                            android:textSize="12.5sp"
+                            android:textColor="#1A73E8"
+                            android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!-- ── Loading Indicator ── -->
+                    <ProgressBar
+                        android:id="@+id/progressBar"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:layout_gravity="center_horizontal"
+                        android:layout_marginTop="20dp"
+                        android:visibility="gone"
+                        android:indeterminateTint="#1A73E8" />
+
+                    <!-- ── Sign In Button ── -->
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnSignIn"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:layout_marginTop="12dp"
+                        android:clickable="true"
+                        android:focusable="true"
+                        app:cardCornerRadius="14dp"
+                        app:cardElevation="6dp"
+                        app:cardBackgroundColor="#1A73E8">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:orientation="horizontal"
+                            android:gravity="center"
+                            android:clickable="false"
+                            android:focusable="false">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Sign In"
+                                android:textColor="#FFFFFF"
+                                android:textSize="15sp"
+                                android:textStyle="bold"
+                                android:letterSpacing="0.05" />
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:layout_marginStart="8dp"
+                                android:src="@drawable/ic_arrow_forward"
+                                app:tint="#FFFFFF" />
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+        </LinearLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

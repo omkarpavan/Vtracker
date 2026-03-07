@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- item_history_image_row.xml  — renders an image field inside a card -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingTop="6dp"
+    android:paddingBottom="6dp">
+
+    <!-- Field label (e.g. "Photo", "Attachment") -->
+    <TextView
+        android:id="@+id/tvImgLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="12sp"
+        android:textColor="#888888"
+        android:paddingBottom="4dp" />
+
+    <!-- The actual image -->
+    <ImageView
+        android:id="@+id/imgField"
+        android:layout_width="match_parent"
+        android:layout_height="180dp"
+        android:scaleType="centerCrop"
+        android:background="#F0F0F0"
+        android:adjustViewBounds="false" />
+
+</LinearLayout>

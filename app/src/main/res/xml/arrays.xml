@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Role options for Login screen spinner -->
+    <string-array name="role_options">
+        <item>Faculty</item>
+        <item>Admin</item>
+    </string-array>
+</resources>
