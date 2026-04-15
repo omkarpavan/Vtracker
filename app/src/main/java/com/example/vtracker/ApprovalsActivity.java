@@ -1,6 +1,5 @@
 package com.example.vtracker;
 
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -19,6 +18,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.RecyclerView;
@@ -46,9 +46,9 @@ import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class AdminActivity extends BaseActivity {
+public class ApprovalsActivity extends BaseActivity {
 
-    private static final String TAG = "AdminActivity";
+    private static final String TAG = "ApprovalsActivity";
 
     // ── API — UNCHANGED ────────────────────────────────────────────
     private static final String ALL_POSTS_API = "http://160.187.169.14/jspapi/gps/getallposts.jsp";
@@ -59,18 +59,19 @@ public class AdminActivity extends BaseActivity {
     private DrawerLayout drawerLayout;
     private LinearLayout sideDrawer;
 
-    private TextView     tvGreeting, tvAvatarLetter;
     private TextView     tvDrawerName, tvDrawerAvatarLetter, tvDrawerRole;
-    private TextView     tvTotalPosts, tvPendingCount, tvViewAll;
-    private LinearLayout containerPosts, layoutEmptyState;
+    private TextView     tvApprovedBadge, tvStatApproved, tvStatTotal, tvStatPending;
+    private TextView     tvError;
+    private LinearLayout containerCards, layoutEmptyState;
     private FrameLayout  loadingOverlay;
 
     // Drawer items
     private LinearLayout drawerHeaderProfile, drawerDashboard, drawerSearch,
-            drawerAllPosts, drawerReports, drawerApprovals, drawerAddFaculty, drawerProfile, drawerLogout;
+            drawerAllPosts, drawerReports, drawerApprovals,
+            drawerProfile, drawerLogout;
 
     // Bottom nav
-    private LinearLayout navDashboard, navSearch, navApprovals, navAddUsers, navProfile;
+    private LinearLayout navDashboard, navSearch, navApprovals, navProfile;
 
     // ── Data ───────────────────────────────────────────────────────
     private String adminName = "";
@@ -78,33 +79,34 @@ public class AdminActivity extends BaseActivity {
 
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
+    // ── onCreate ───────────────────────────────────────────────────
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().setStatusBarColor(Color.parseColor("#FFFFFF"));
         getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-        setContentView(R.layout.activity_admin);
+        setContentView(R.layout.activity_admin_approvals);
 
         initViews();
         loadAdminData();
         setListeners();
-        loadAllPosts();
+        fetchAndFilterApproved();
     }
 
     // ── Bind views ─────────────────────────────────────────────────
     private void initViews() {
         drawerLayout         = findViewById(R.id.drawerLayout);
         sideDrawer           = findViewById(R.id.sideDrawer);
-        tvGreeting           = findViewById(R.id.tvGreeting);
-        tvAvatarLetter       = findViewById(R.id.tvAvatarLetter);
         tvDrawerName         = findViewById(R.id.tvDrawerName);
         tvDrawerAvatarLetter = findViewById(R.id.tvDrawerAvatarLetter);
         tvDrawerRole         = findViewById(R.id.tvDrawerRole);
-        tvTotalPosts         = findViewById(R.id.tvTotalPosts);
-        tvPendingCount       = findViewById(R.id.tvPendingCount);
-        tvViewAll            = findViewById(R.id.tvViewAll);
-        containerPosts       = findViewById(R.id.containerPosts);
+        tvApprovedBadge      = findViewById(R.id.tvApprovedBadge);
+        tvStatApproved       = findViewById(R.id.tvStatApproved);
+        tvStatTotal          = findViewById(R.id.tvStatTotal);
+        tvStatPending        = findViewById(R.id.tvStatPending);
+        tvError              = findViewById(R.id.tvError);
+        containerCards       = findViewById(R.id.containerCards);
         layoutEmptyState     = findViewById(R.id.layoutEmptyState);
         loadingOverlay       = findViewById(R.id.loadingOverlay);
         drawerHeaderProfile  = findViewById(R.id.drawerHeaderProfile);
@@ -113,18 +115,18 @@ public class AdminActivity extends BaseActivity {
         drawerAllPosts       = findViewById(R.id.drawerAllPosts);
         drawerReports        = findViewById(R.id.drawerReports);
         drawerApprovals      = findViewById(R.id.drawerApprovals);
-        drawerAddFaculty     = findViewById(R.id.drawerAddFaculty);
         drawerProfile        = findViewById(R.id.drawerProfile);
         drawerLogout         = findViewById(R.id.drawerLogout);
         navDashboard         = findViewById(R.id.navDashboard);
         navSearch            = findViewById(R.id.navSearch);
         navApprovals         = findViewById(R.id.navApprovals);
-        navAddUsers          = findViewById(R.id.navAddUsers);
         navProfile           = findViewById(R.id.navProfile);
+
+        // Hamburger menu
         findViewById(R.id.ivMenu).setOnClickListener(v -> openDrawer());
     }
 
-    // ── Load admin name/id ─────────────────────────────────────────
+    // ── Load admin name ────────────────────────────────────────────
     private void loadAdminData() {
         adminName = getIntent().getStringExtra("USER_NAME");
         adminId   = getIntent().getStringExtra("EMPLOYEE_ID");
@@ -139,20 +141,55 @@ public class AdminActivity extends BaseActivity {
         String display = (adminName != null && !adminName.isEmpty()) ? adminName : "Admin";
         String letter  = String.valueOf(display.charAt(0)).toUpperCase();
 
-        tvGreeting.setText("Hello, " + display);
-        tvAvatarLetter.setText(letter);
         tvDrawerName.setText(display);
         tvDrawerAvatarLetter.setText(letter);
         tvDrawerRole.setText(adminId != null && !adminId.isEmpty()
                 ? "ID: " + adminId : "Administrator");
     }
 
-    // ── Drawer helpers ─────────────────────────────────────────────
+    // ── Drawer ─────────────────────────────────────────────────────
     private void openDrawer()  { drawerLayout.openDrawer(sideDrawer); }
     private void closeDrawer() { drawerLayout.closeDrawer(sideDrawer); }
 
+    // ── All listeners ──────────────────────────────────────────────
+    private void setListeners() {
+
+        // Bottom nav
+        navDashboard.setOnClickListener(v -> goToDashboard());
+        navSearch.setOnClickListener(v    -> goToSearch());
+        navApprovals.setOnClickListener(v -> { /* already here */ });
+        navProfile.setOnClickListener(v   -> goToProfile());
+
+        // Drawer header
+        drawerHeaderProfile.setOnClickListener(v -> { closeDrawer(); goToProfile(); });
+
+        // Drawer items
+        drawerDashboard.setOnClickListener(v -> goToDashboard());
+        drawerSearch.setOnClickListener(v    -> goToSearch());
+        drawerAllPosts.setOnClickListener(v  -> goToSearch());
+        drawerReports.setOnClickListener(v   -> {
+            closeDrawer();
+            Toast.makeText(this, "Reports coming soon", Toast.LENGTH_SHORT).show();
+        });
+        drawerApprovals.setOnClickListener(v -> {
+            closeDrawer();
+            Toast.makeText(this, "Already on Approvals", Toast.LENGTH_SHORT).show();
+        });
+        drawerProfile.setOnClickListener(v  -> { closeDrawer(); goToProfile(); });
+        drawerLogout.setOnClickListener(v   -> showLogoutDialog());
+    }
+
     // ── Navigation helpers ─────────────────────────────────────────
-    private void openSearch() {
+    private void goToDashboard() {
+        closeDrawer();
+        Intent i = new Intent(this, AdminActivity.class);
+        i.putExtra("USER_NAME",   adminName);
+        i.putExtra("EMPLOYEE_ID", adminId);
+        i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(i);
+    }
+
+    private void goToSearch() {
         closeDrawer();
         Intent i = new Intent(this, AdminSearchActivity.class);
         i.putExtra("USER_NAME",   adminName);
@@ -160,131 +197,90 @@ public class AdminActivity extends BaseActivity {
         startActivity(i);
     }
 
-    // ── FIX: opens ApprovalsActivity ──────────────────────────────
-    private void openAddFaculty() {
-        closeDrawer();
-        Intent i = new Intent(this, AddFacultyActivity.class);
-        i.putExtra("USER_NAME",   adminName);
-        i.putExtra("EMPLOYEE_ID", adminId);
-        startActivity(i);
-    }
-
-    private void openApprovals() {
-        closeDrawer();
-        Intent i = new Intent(this, ApprovalsActivity.class);
-        i.putExtra("USER_NAME",   adminName);
-        i.putExtra("EMPLOYEE_ID", adminId);
-        startActivity(i);
-    }
-
-    private void openProfile() {
-        closeDrawer();
+    private void goToProfile() {
         Intent i = new Intent(this, ProfileActivity.class);
         i.putExtra("USER_NAME",   adminName);
         i.putExtra("EMPLOYEE_ID", adminId);
         startActivity(i);
     }
 
-    // ── All listeners ──────────────────────────────────────────────
-    private void setListeners() {
-
-        tvViewAll.setOnClickListener(v -> openSearch());
-
-        // Bottom nav
-        navDashboard.setOnClickListener(v ->
-                Toast.makeText(this, "Already on Dashboard", Toast.LENGTH_SHORT).show());
-        navSearch.setOnClickListener(v    -> openSearch());
-        navApprovals.setOnClickListener(v -> openApprovals());   // ← FIXED
-        navAddUsers.setOnClickListener(v  -> openAddFaculty());
-        navProfile.setOnClickListener(v   -> openProfile());
-
-        // Drawer header
-        drawerHeaderProfile.setOnClickListener(v -> openProfile());
-
-        // Drawer items
-        drawerDashboard.setOnClickListener(v -> {
-            closeDrawer();
-            Toast.makeText(this, "Already on Dashboard", Toast.LENGTH_SHORT).show();
-        });
-        drawerSearch.setOnClickListener(v    -> openSearch());
-        drawerAllPosts.setOnClickListener(v  -> openSearch());
-        drawerReports.setOnClickListener(v   -> {
-            closeDrawer();
-            Toast.makeText(this, "Reports coming soon", Toast.LENGTH_SHORT).show();
-        });
-        drawerApprovals.setOnClickListener(v -> openApprovals());  // ← FIXED
-        drawerAddFaculty.setOnClickListener(v -> openAddFaculty());
-        drawerProfile.setOnClickListener(v   -> openProfile());
-        drawerLogout.setOnClickListener(v    -> showLogoutDialog());
-    }
-
     // ══════════════════════════════════════════════════════════════
-    //  Fetch all posts — API CALL UNCHANGED
+    //  Fetch ALL posts then filter approved client-side
     // ══════════════════════════════════════════════════════════════
-    private void loadAllPosts() {
+    private void fetchAndFilterApproved() {
         loadingOverlay.setVisibility(View.VISIBLE);
         layoutEmptyState.setVisibility(View.GONE);
-        containerPosts.removeAllViews();
+        tvError.setVisibility(View.GONE);
+        containerCards.removeAllViews();
 
         executor.execute(() -> {
             try {
-                String json = httpGet(ALL_POSTS_API);
-                Log.d(TAG, "All posts response: " + json);
-                runOnUiThread(() -> renderResults(json));
+                String json = httpGet(ALL_POSTS_API);   // ← same endpoint, UNCHANGED
+                Log.d(TAG, "Response length: " + (json != null ? json.length() : 0));
+                runOnUiThread(() -> processJson(json));
             } catch (Exception e) {
                 Log.e(TAG, "Fetch error: " + e.getMessage());
                 runOnUiThread(() -> {
                     loadingOverlay.setVisibility(View.GONE);
-                    showEmpty("Network error: " + e.getMessage());
+                    showError("Network error: " + e.getMessage());
                 });
             }
         });
     }
 
-    private void renderResults(String json) {
+    private void processJson(String json) {
         loadingOverlay.setVisibility(View.GONE);
 
         if (json == null || json.trim().isEmpty()) {
-            showEmpty("No posts available.");
-            tvTotalPosts.setText("0");
+            showError("No data received from server.");
             return;
         }
 
         try {
-            JSONArray array;
+            JSONArray all;
             String trimmed = json.trim();
             if (trimmed.startsWith("[")) {
-                array = new JSONArray(trimmed);
+                all = new JSONArray(trimmed);
             } else {
                 JSONObject wrapper = new JSONObject(trimmed);
                 String key = wrapper.keys().next();
-                array = wrapper.getJSONArray(key);
+                all = wrapper.getJSONArray(key);
             }
 
-            if (array.length() == 0) {
-                showEmpty("No posts found.");
-                tvTotalPosts.setText("0");
+            // ── Filter: keep only approved/completed posts ────────
+            List<JSONObject> approved = new ArrayList<>();
+            int totalPending = 0;
+
+            for (int i = 0; i < all.length(); i++) {
+                JSONObject post   = all.getJSONObject(i);
+                String status     = post.optString("status", "").trim().toLowerCase();
+
+                if (status.contains("approved") || status.contains("completed")) {
+                    approved.add(post);
+                } else if (status.contains("pending") || status.isEmpty()) {
+                    totalPending++;
+                }
+            }
+
+            // Update stats
+            tvStatTotal.setText(String.valueOf(all.length()));
+            tvStatApproved.setText(String.valueOf(approved.size()));
+            tvStatPending.setText(String.valueOf(totalPending));
+            tvApprovedBadge.setText(approved.size() + " approved");
+
+            if (approved.isEmpty()) {
+                layoutEmptyState.setVisibility(View.VISIBLE);
                 return;
             }
 
-            tvTotalPosts.setText(String.valueOf(array.length()));
-            layoutEmptyState.setVisibility(View.GONE);
-
-            int pendingCount = 0;
+            // Inflate approved cards
             LayoutInflater inflater = LayoutInflater.from(this);
-
-            for (int i = 0; i < array.length(); i++) {
-                JSONObject post = array.getJSONObject(i);
-
-                String postId  = post.optString("id", post.optString("visit_id", post.optString("gps_id", "")));
+            for (JSONObject post : approved) {
                 String empcode = post.optString("empcode",     "");
                 String desc    = post.optString("description", "");
                 String lat     = post.optString("latitude",    "");
                 String lng     = post.optString("longitude",   "");
                 String time    = post.optString("time",        "");
-                String status  = post.optString("status",      "");
-
-                if (status.equalsIgnoreCase("pending") || status.isEmpty()) pendingCount++;
 
                 List<String> imgs = new ArrayList<>();
                 JSONArray imgArr  = post.optJSONArray("images");
@@ -293,23 +289,22 @@ public class AdminActivity extends BaseActivity {
                         imgs.add(imgArr.getString(j));
                 }
 
-                View card = inflater.inflate(R.layout.item_post_card, containerPosts, false);
-                bindCard(card, postId, empcode, desc, lat, lng, time, status, imgs);
-                containerPosts.addView(card);
+                View card = inflater.inflate(
+                        R.layout.item_approved_card, containerCards, false);
+                bindApprovedCard(card, empcode, desc, lat, lng, time, imgs);
+                containerCards.addView(card);
             }
-
-            tvPendingCount.setText(String.valueOf(pendingCount));
 
         } catch (Exception e) {
             Log.e(TAG, "Parse error: " + e.getMessage());
-            showEmpty("Error reading response: " + e.getMessage());
+            showError("Error reading response: " + e.getMessage());
         }
     }
 
-    // ── Bind one post card ────────────────────────────────────────
-    void bindCard(View card, String postId, String empcode, String description,
-                  String latitude, String longitude, String time,
-                  String status, List<String> imageUrls) {
+    // ── Bind one approved card ─────────────────────────────────────
+    private void bindApprovedCard(View card, String empcode, String description,
+                                  String latitude, String longitude,
+                                  String time, List<String> imageUrls) {
 
         ImageView    ivPhoto    = card.findViewById(R.id.ivCardFacultyPhoto);
         TextView     tvName     = card.findViewById(R.id.tvCardFacultyName);
@@ -317,13 +312,12 @@ public class AdminActivity extends BaseActivity {
         TextView     tvLocation = card.findViewById(R.id.tvCardLocation);
         TextView     tvDesc     = card.findViewById(R.id.tvCardDescription);
         TextView     tvTime     = card.findViewById(R.id.tvCardTime);
-        TextView     tvStatus   = card.findViewById(R.id.tvCardStatus);
+        TextView     tvTimestamp = card.findViewById(R.id.tvCardTimestamp);
         ViewPager2   pager      = card.findViewById(R.id.viewPagerImages);
         LinearLayout dots       = card.findViewById(R.id.layoutDots);
         CardView     btnMap     = card.findViewById(R.id.btnViewMap);
-        CardView     btnApprove = card.findViewById(R.id.btnApprove);
-        TextView     tvApprove  = card.findViewById(R.id.tvApproveLabel);
 
+        // Pad empcode — UNCHANGED
         String paddedCode = empcode;
         try {
             paddedCode = String.format("%05d",
@@ -331,14 +325,9 @@ public class AdminActivity extends BaseActivity {
         } catch (NumberFormatException ignored) {}
 
         tvName.setText(paddedCode);
-        tvDept.setText("Emp ID: " + paddedCode);
+        tvDept.setText("Emp ID: FAC-" + paddedCode);
 
-        if (!status.isEmpty()) {
-            tvStatus.setVisibility(View.VISIBLE);
-            tvStatus.setText(status.toUpperCase());
-            tvStatus.getBackground().setTint(Color.parseColor(getStatusColor(status)));
-        }
-
+        // Faculty photo — UNCHANGED
         String photoUrl = PHOTO_BASE_IP + "/counselling_jspapi/StaffPhotos/"
                 + paddedCode + ".JPG";
         Glide.with(this)
@@ -350,6 +339,7 @@ public class AdminActivity extends BaseActivity {
                         .error(android.R.drawable.ic_menu_myplaces))
                 .into(ivPhoto);
 
+        // Images — UNCHANGED
         if (!imageUrls.isEmpty()) {
             pager.setVisibility(View.VISIBLE);
             pager.setAdapter(new ImagePagerAdapter(imageUrls));
@@ -368,10 +358,15 @@ public class AdminActivity extends BaseActivity {
         }
 
         tvDesc.setText(description.isEmpty() ? "(No description)" : description);
-        tvTime.setText(formatTime(time));
+
+        String formatted = formatTime(time);
+        tvTime.setText(formatted);
+        tvTimestamp.setText(formatted);
+
         tvLocation.setText(latitude + ", " + longitude);
         reverseGeocode(latitude, longitude, tvLocation);
 
+        // Map button — UNCHANGED
         btnMap.setOnClickListener(v -> {
             try {
                 Intent mapIntent = new Intent(Intent.ACTION_VIEW,
@@ -389,99 +384,9 @@ public class AdminActivity extends BaseActivity {
                 Toast.makeText(this, "Cannot open map.", Toast.LENGTH_SHORT).show();
             }
         });
-
-        final String finalCode = paddedCode;
-        final String finalPostId = postId;
-        btnApprove.setOnClickListener(v ->
-                new AlertDialog.Builder(this)
-                        .setTitle("Approve Visit")
-                        .setMessage("Approve this visit by " + finalCode + "?")
-                        .setPositiveButton("Approve", (d, w) -> callApproveApi(finalPostId, finalCode, btnApprove, tvApprove))
-                        .setNegativeButton("Cancel", null)
-                        .show()
-        );
     }
 
-    // ── Call approvepost.jsp on server ───────────────────────────
-    private void callApproveApi(String postId, String empcode, CardView btnApprove, TextView tvApprove) {
-        btnApprove.setEnabled(false);
-        tvApprove.setText("Approving...");
-
-        executor.execute(() -> {
-            HttpURLConnection conn = null;
-            try {
-                String urlStr = SERVER_BASE + "/jspapi/gps/approvepost.jsp"
-                        + "?id=" + postId + "&empcode=" + empcode + "&status=approved";
-                URL url = new URL(urlStr);
-                conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("GET");
-                conn.setConnectTimeout(8000);
-                conn.setReadTimeout(8000);
-
-                int code = conn.getResponseCode();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(
-                        code == 200 ? conn.getInputStream() : conn.getErrorStream()));
-                StringBuilder sb = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) sb.append(line);
-                reader.close();
-
-                String body = sb.toString().trim();
-                Log.d(TAG, "Approve response: " + body);
-
-                boolean success = false;
-                try {
-                    JSONObject resp = new JSONObject(body);
-                    success = resp.optBoolean("success", false);
-                } catch (Exception ignored) {
-                    success = body.contains("\"success\":true") || body.contains("success");
-                }
-
-                final boolean ok = success;
-                runOnUiThread(() -> {
-                    if (ok) {
-                        btnApprove.setCardBackgroundColor(Color.parseColor("#34A853"));
-                        tvApprove.setText("Approved ✓");
-                        Toast.makeText(this, "Visit approved!", Toast.LENGTH_SHORT).show();
-                    } else {
-                        btnApprove.setEnabled(true);
-                        tvApprove.setText("Approve");
-                        Toast.makeText(this, "Approval failed. Check server.", Toast.LENGTH_LONG).show();
-                    }
-                });
-            } catch (Exception e) {
-                runOnUiThread(() -> {
-                    btnApprove.setEnabled(true);
-                    tvApprove.setText("Approve");
-                    Toast.makeText(this, "Network error: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
-            } finally {
-                if (conn != null) conn.disconnect();
-            }
-        });
-    }
-
-    private String getStatusColor(String status) {
-        String s = status.toLowerCase().trim();
-        if (s.contains("approved") || s.contains("completed")) return "#34A853";
-        if (s.contains("pending"))  return "#FB8C00";
-        if (s.contains("review"))   return "#1A73E8";
-        if (s.contains("rejected")) return "#E53935";
-        return "#8A93B2";
-    }
-
-    private String buildImageUrl(String path) {
-        if (path == null || path.isEmpty()) return "";
-        String normalized = path.replace("\\", "/");
-        if (normalized.contains("localhost") || normalized.contains("127.0.0.1")
-                || normalized.contains("192.168.")) {
-            int slashIdx = normalized.indexOf("/", 8);
-            if (slashIdx != -1) normalized = normalized.substring(slashIdx);
-        }
-        if (normalized.startsWith("http")) return normalized;
-        String clean = normalized.startsWith("/") ? normalized : "/" + normalized;
-        return SERVER_BASE + clean;
-    }
+    // ── Helpers ───────────────────────────────────────────────────
 
     private void setupDots(LinearLayout layout, int count, int active) {
         layout.removeAllViews();
@@ -516,6 +421,7 @@ public class AdminActivity extends BaseActivity {
         });
     }
 
+    // formatTime — UNCHANGED
     private String formatTime(String raw) {
         if (raw == null || raw.isEmpty()) return "";
         try {
@@ -526,6 +432,7 @@ public class AdminActivity extends BaseActivity {
         } catch (ParseException e) { return raw; }
     }
 
+    // httpGet — UNCHANGED
     private String httpGet(String urlStr) throws IOException {
         HttpURLConnection conn = null;
         try {
@@ -551,8 +458,24 @@ public class AdminActivity extends BaseActivity {
         }
     }
 
-    private void showEmpty(String msg) {
-        layoutEmptyState.setVisibility(View.VISIBLE);
+    // buildImageUrl — UNCHANGED
+    private String buildImageUrl(String path) {
+        if (path == null || path.isEmpty()) return "";
+        String normalized = path.replace("\\", "/");
+        if (normalized.contains("localhost") || normalized.contains("127.0.0.1")
+                || normalized.contains("192.168.")) {
+            int slashIdx = normalized.indexOf("/", 8);
+            if (slashIdx != -1) normalized = normalized.substring(slashIdx);
+        }
+        if (normalized.startsWith("http")) return normalized;
+        String clean = normalized.startsWith("/") ? normalized : "/" + normalized;
+        return SERVER_BASE + clean;
+    }
+
+    private void showError(String msg) {
+        tvError.setVisibility(View.VISIBLE);
+        tvError.setText(msg);
+        layoutEmptyState.setVisibility(View.GONE);
     }
 
     private int dpToPx(int dp) {
@@ -588,7 +511,7 @@ public class AdminActivity extends BaseActivity {
     }
 
     // Image pager adapter — UNCHANGED
-    class ImagePagerAdapter extends RecyclerView.Adapter<ImagePagerAdapter.VH> {
+    private class ImagePagerAdapter extends RecyclerView.Adapter<ImagePagerAdapter.VH> {
         private final List<String> urls;
         ImagePagerAdapter(List<String> urls) { this.urls = urls; }
 
@@ -604,7 +527,7 @@ public class AdminActivity extends BaseActivity {
 
         @Override
         public void onBindViewHolder(@NonNull VH h, int pos) {
-            Glide.with(AdminActivity.this)
+            Glide.with(ApprovalsActivity.this)
                     .load(buildImageUrl(urls.get(pos)))
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .placeholder(android.R.drawable.ic_menu_gallery)

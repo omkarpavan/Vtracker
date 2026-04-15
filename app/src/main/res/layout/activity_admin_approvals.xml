@@ -25,14 +25,14 @@
             android:paddingEnd="16dp"
             android:paddingTop="40dp"
             android:paddingBottom="14dp"
-            android:background="#FFFFFF">
+            android:background="#1A73E8">
 
             <ImageView
                 android:id="@+id/ivMenu"
                 android:layout_width="24dp"
                 android:layout_height="24dp"
                 android:src="@drawable/ic_menu"
-                app:tint="#1A73E8"
+                app:tint="#FFFFFF"
                 android:layout_marginEnd="12dp"
                 android:clickable="true"
                 android:focusable="true" />
@@ -41,28 +41,33 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Admin Dashboard"
-                android:textSize="17sp"
+                android:text="VTracker"
+                android:textSize="18sp"
                 android:textStyle="bold"
-                android:textColor="#0D1B4B"
-                android:fontFamily="sans-serif-medium" />
+                android:textColor="#FFFFFF"
+                android:fontFamily="sans-serif-medium"
+                android:gravity="center" />
 
-            <!-- Admin avatar circle -->
+            <!-- Approved count badge -->
             <androidx.cardview.widget.CardView
-                android:layout_width="36dp"
-                android:layout_height="36dp"
-                app:cardCornerRadius="18dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="#1A73E8">
+                android:id="@+id/cardApprovedBadge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#E6F9ED">
                 <TextView
-                    android:id="@+id/tvAvatarLetter"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:text="A"
-                    android:textSize="15sp"
+                    android:id="@+id/tvApprovedBadge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:text="0 approved"
+                    android:textSize="11sp"
                     android:textStyle="bold"
-                    android:textColor="#FFFFFF"
-                    android:gravity="center" />
+                    android:textColor="#34A853" />
             </androidx.cardview.widget.CardView>
 
         </LinearLayout>
@@ -83,12 +88,11 @@
                 android:paddingEnd="18dp"
                 android:paddingTop="20dp">
 
-                <!-- GREETING -->
+                <!-- Page title -->
                 <TextView
-                    android:id="@+id/tvGreeting"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Hello, Admin"
+                    android:text="Approved Visits"
                     android:textSize="24sp"
                     android:textStyle="bold"
                     android:textColor="#0D1B4B"
@@ -98,153 +102,131 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Manage faculty visits and verify site reports."
+                    android:text="All verified faculty field visit records."
                     android:textSize="13sp"
                     android:textColor="#8A93B2"
                     android:layout_marginBottom="22dp" />
 
-                <!-- STATS ROW -->
-                <LinearLayout
+                <!-- ── STATS CARD ─────────────────────────────── -->
+                <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:weightSum="2"
-                    android:layout_marginBottom="26dp">
+                    android:layout_marginBottom="22dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="3dp"
+                    app:cardBackgroundColor="#1A73E8">
 
-                    <!-- Total Posts -->
-                    <androidx.cardview.widget.CardView
-                        android:layout_width="0dp"
+                    <LinearLayout
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginEnd="8dp"
-                        app:cardCornerRadius="16dp"
-                        app:cardElevation="3dp"
-                        app:cardBackgroundColor="#FFFFFF">
+                        android:orientation="horizontal"
+                        android:padding="20dp"
+                        android:weightSum="3">
+
+                        <!-- Approved -->
                         <LinearLayout
-                            android:layout_width="match_parent"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_weight="1"
                             android:orientation="vertical"
-                            android:padding="16dp">
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal"
-                                android:gravity="center_vertical"
-                                android:layout_marginBottom="8dp">
-                                <androidx.cardview.widget.CardView
-                                    android:layout_width="34dp"
-                                    android:layout_height="34dp"
-                                    app:cardCornerRadius="10dp"
-                                    app:cardElevation="0dp"
-                                    app:cardBackgroundColor="#EAF1FF">
-                                    <ImageView
-                                        android:layout_width="18dp"
-                                        android:layout_height="18dp"
-                                        android:layout_gravity="center"
-                                        android:src="@drawable/ic_visibility"
-                                        app:tint="#1A73E8" />
-                                </androidx.cardview.widget.CardView>
-                            </LinearLayout>
+                            android:gravity="center">
                             <TextView
-                                android:id="@+id/tvTotalPosts"
+                                android:id="@+id/tvStatApproved"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="—"
-                                android:textSize="28sp"
+                                android:textSize="26sp"
                                 android:textStyle="bold"
-                                android:textColor="#0D1B4B" />
+                                android:textColor="#FFFFFF" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="APPROVED"
+                                android:textSize="9sp"
+                                android:textColor="#B3D1FF"
+                                android:letterSpacing="0.06"
+                                android:layout_marginTop="2dp" />
+                        </LinearLayout>
+
+                        <!-- Divider -->
+                        <View
+                            android:layout_width="1dp"
+                            android:layout_height="match_parent"
+                            android:background="#3D8EF0"
+                            android:layout_marginTop="4dp"
+                            android:layout_marginBottom="4dp" />
+
+                        <!-- Total fetched -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="center">
+                            <TextView
+                                android:id="@+id/tvStatTotal"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="—"
+                                android:textSize="26sp"
+                                android:textStyle="bold"
+                                android:textColor="#FFFFFF" />
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="TOTAL POSTS"
-                                android:textSize="10sp"
-                                android:textColor="#8A93B2"
+                                android:textSize="9sp"
+                                android:textColor="#B3D1FF"
                                 android:letterSpacing="0.06"
                                 android:layout_marginTop="2dp" />
                         </LinearLayout>
-                    </androidx.cardview.widget.CardView>
 
-                    <!-- Pending -->
-                    <androidx.cardview.widget.CardView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="8dp"
-                        app:cardCornerRadius="16dp"
-                        app:cardElevation="3dp"
-                        app:cardBackgroundColor="#FFFFFF">
+                        <!-- Divider -->
+                        <View
+                            android:layout_width="1dp"
+                            android:layout_height="match_parent"
+                            android:background="#3D8EF0"
+                            android:layout_marginTop="4dp"
+                            android:layout_marginBottom="4dp" />
+
+                        <!-- Pending -->
                         <LinearLayout
-                            android:layout_width="match_parent"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_weight="1"
                             android:orientation="vertical"
-                            android:padding="16dp">
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:orientation="horizontal"
-                                android:gravity="center_vertical"
-                                android:layout_marginBottom="8dp">
-                                <androidx.cardview.widget.CardView
-                                    android:layout_width="34dp"
-                                    android:layout_height="34dp"
-                                    app:cardCornerRadius="10dp"
-                                    app:cardElevation="0dp"
-                                    app:cardBackgroundColor="#FFF3E0">
-                                    <ImageView
-                                        android:layout_width="18dp"
-                                        android:layout_height="18dp"
-                                        android:layout_gravity="center"
-                                        android:src="@drawable/ic_pending"
-                                        app:tint="#FB8C00" />
-                                </androidx.cardview.widget.CardView>
-                            </LinearLayout>
+                            android:gravity="center">
                             <TextView
-                                android:id="@+id/tvPendingCount"
+                                android:id="@+id/tvStatPending"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="—"
-                                android:textSize="28sp"
+                                android:textSize="26sp"
                                 android:textStyle="bold"
-                                android:textColor="#0D1B4B" />
+                                android:textColor="#FFFFFF" />
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="PENDING"
-                                android:textSize="10sp"
-                                android:textColor="#8A93B2"
+                                android:textSize="9sp"
+                                android:textColor="#B3D1FF"
                                 android:letterSpacing="0.06"
                                 android:layout_marginTop="2dp" />
                         </LinearLayout>
-                    </androidx.cardview.widget.CardView>
 
-                </LinearLayout>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
 
-                <!-- RECENT FACULTY VISITS header -->
-                <LinearLayout
-                    android:layout_width="match_parent"
+                <!-- SECTION LABEL -->
+                <TextView
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:layout_marginBottom="14dp">
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Recent Faculty Visits"
-                        android:textSize="17sp"
-                        android:textStyle="bold"
-                        android:textColor="#0D1B4B" />
-                    <TextView
-                        android:id="@+id/tvViewAll"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="View All"
-                        android:textSize="13sp"
-                        android:textColor="#1A73E8"
-                        android:textStyle="bold"
-                        android:clickable="true"
-                        android:focusable="true" />
-                </LinearLayout>
+                    android:text="APPROVED RECORDS"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="#8A93B2"
+                    android:letterSpacing="0.1"
+                    android:layout_marginBottom="12dp" />
 
                 <!-- Loading -->
                 <FrameLayout
@@ -263,35 +245,53 @@
                 <LinearLayout
                     android:id="@+id/layoutEmptyState"
                     android:layout_width="match_parent"
-                    android:layout_height="120dp"
+                    android:layout_height="140dp"
                     android:orientation="vertical"
                     android:gravity="center"
                     android:visibility="gone">
-                    <ImageView
-                        android:layout_width="40dp"
-                        android:layout_height="40dp"
-                        android:src="@drawable/ic_history"
-                        app:tint="#C5CAE9" />
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        app:cardCornerRadius="32dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="#E6F9ED">
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_check_circle"
+                            app:tint="#34A853" />
+                    </androidx.cardview.widget.CardView>
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:text="No Posts Yet"
+                        android:layout_marginTop="12dp"
+                        android:text="No Approved Posts Yet"
                         android:textColor="#8A93B2"
-                        android:textSize="14sp"
+                        android:textSize="15sp"
                         android:textStyle="bold" />
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Faculty visit posts will appear here"
+                        android:text="Approved visits will appear here"
                         android:textColor="#B0B8CC"
                         android:textSize="12sp" />
                 </LinearLayout>
 
-                <!-- Dynamic post cards injected here -->
+                <!-- Error text -->
+                <TextView
+                    android:id="@+id/tvError"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:textColor="#8A93B2"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
+
+                <!-- Approved cards injected here -->
                 <LinearLayout
-                    android:id="@+id/containerPosts"
+                    android:id="@+id/containerCards"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical" />
@@ -299,12 +299,12 @@
             </LinearLayout>
         </ScrollView>
 
-        <!-- ── BOTTOM NAV — 5 items ───────────────────────────── -->
+        <!-- ── BOTTOM NAV ──────────────────────────────────────── -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="68dp"
             android:orientation="horizontal"
-            android:weightSum="5"
+            android:weightSum="4"
             android:background="#FFFFFF"
             android:elevation="16dp">
 
@@ -313,11 +313,11 @@
                 android:layout_weight="1" android:orientation="vertical" android:gravity="center"
                 android:clickable="true" android:focusable="true"
                 android:background="?attr/selectableItemBackground">
-                <ImageView android:layout_width="22dp" android:layout_height="22dp"
-                    android:src="@drawable/ic_home" app:tint="#1A73E8" />
+                <ImageView android:layout_width="24dp" android:layout_height="24dp"
+                    android:src="@drawable/ic_home" app:tint="#AAAAAA" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="Dashboard" android:textSize="8sp" android:textColor="#1A73E8"
-                    android:textStyle="bold" android:layout_marginTop="3dp" />
+                    android:text="Dashboard" android:textSize="9sp" android:textColor="#AAAAAA"
+                    android:layout_marginTop="3dp" />
             </LinearLayout>
 
             <LinearLayout android:id="@+id/navSearch"
@@ -325,22 +325,10 @@
                 android:layout_weight="1" android:orientation="vertical" android:gravity="center"
                 android:clickable="true" android:focusable="true"
                 android:background="?attr/selectableItemBackground">
-                <ImageView android:layout_width="22dp" android:layout_height="22dp"
+                <ImageView android:layout_width="24dp" android:layout_height="24dp"
                     android:src="@drawable/ic_visibility" app:tint="#AAAAAA" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="Search" android:textSize="8sp" android:textColor="#AAAAAA"
-                    android:layout_marginTop="3dp" />
-            </LinearLayout>
-
-            <LinearLayout android:id="@+id/navAddUsers"
-                android:layout_width="0dp" android:layout_height="match_parent"
-                android:layout_weight="1" android:orientation="vertical" android:gravity="center"
-                android:clickable="true" android:focusable="true"
-                android:background="?attr/selectableItemBackground">
-                <ImageView android:layout_width="22dp" android:layout_height="22dp"
-                    android:src="@drawable/ic_person" app:tint="#AAAAAA" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="Add Users" android:textSize="8sp" android:textColor="#AAAAAA"
+                    android:text="Search" android:textSize="9sp" android:textColor="#AAAAAA"
                     android:layout_marginTop="3dp" />
             </LinearLayout>
 
@@ -349,11 +337,11 @@
                 android:layout_weight="1" android:orientation="vertical" android:gravity="center"
                 android:clickable="true" android:focusable="true"
                 android:background="?attr/selectableItemBackground">
-                <ImageView android:layout_width="22dp" android:layout_height="22dp"
-                    android:src="@drawable/ic_check_circle" app:tint="#AAAAAA" />
+                <ImageView android:layout_width="24dp" android:layout_height="24dp"
+                    android:src="@drawable/ic_check_circle" app:tint="#1A73E8" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="Approvals" android:textSize="8sp" android:textColor="#AAAAAA"
-                    android:layout_marginTop="3dp" />
+                    android:text="Approvals" android:textSize="9sp" android:textColor="#1A73E8"
+                    android:textStyle="bold" android:layout_marginTop="3dp" />
             </LinearLayout>
 
             <LinearLayout android:id="@+id/navProfile"
@@ -361,10 +349,10 @@
                 android:layout_weight="1" android:orientation="vertical" android:gravity="center"
                 android:clickable="true" android:focusable="true"
                 android:background="?attr/selectableItemBackground">
-                <ImageView android:layout_width="22dp" android:layout_height="22dp"
+                <ImageView android:layout_width="24dp" android:layout_height="24dp"
                     android:src="@drawable/ic_person" app:tint="#AAAAAA" />
                 <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="Profile" android:textSize="8sp" android:textColor="#AAAAAA"
+                    android:text="Profile" android:textSize="9sp" android:textColor="#AAAAAA"
                     android:layout_marginTop="3dp" />
             </LinearLayout>
 
@@ -373,7 +361,7 @@
     </LinearLayout>
 
     <!-- ══════════════════════════════════════════════════════════
-         SIDE DRAWER
+         SIDE DRAWER  (identical structure to AdminActivity)
     ══════════════════════════════════════════════════════════════ -->
     <LinearLayout
         android:id="@+id/sideDrawer"
@@ -384,7 +372,7 @@
         android:background="#FFFFFF"
         android:elevation="16dp">
 
-        <!-- DRAWER HEADER -->
+        <!-- Header -->
         <LinearLayout
             android:id="@+id/drawerHeaderProfile"
             android:layout_width="match_parent"
@@ -468,10 +456,9 @@
                 android:textStyle="bold"
                 android:textColor="#FFFFFF"
                 android:background="@drawable/bg_pill_white_outline" />
-
         </LinearLayout>
 
-        <!-- MENU ITEMS -->
+        <!-- Menu items -->
         <ScrollView
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -484,21 +471,19 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical">
 
-                <!-- Dashboard -->
                 <LinearLayout android:id="@+id/drawerDashboard"
                     android:layout_width="match_parent" android:layout_height="52dp"
                     android:orientation="horizontal" android:gravity="center_vertical"
                     android:paddingStart="24dp" android:paddingEnd="24dp"
                     android:clickable="true" android:focusable="true"
-                    android:background="@drawable/bg_drawer_item_active">
+                    android:background="?attr/selectableItemBackground">
                     <ImageView android:layout_width="22dp" android:layout_height="22dp"
                         android:src="@drawable/ic_home" app:tint="#1A73E8" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:layout_marginStart="18dp" android:text="Dashboard"
-                        android:textSize="15sp" android:textColor="#1A73E8" android:textStyle="bold" />
+                        android:textSize="15sp" android:textColor="#0D1B4B" />
                 </LinearLayout>
 
-                <!-- Search -->
                 <LinearLayout android:id="@+id/drawerSearch"
                     android:layout_width="match_parent" android:layout_height="52dp"
                     android:orientation="horizontal" android:gravity="center_vertical"
@@ -512,7 +497,6 @@
                         android:textSize="15sp" android:textColor="#0D1B4B" />
                 </LinearLayout>
 
-                <!-- All Posts -->
                 <LinearLayout android:id="@+id/drawerAllPosts"
                     android:layout_width="match_parent" android:layout_height="52dp"
                     android:orientation="horizontal" android:gravity="center_vertical"
@@ -526,7 +510,6 @@
                         android:textSize="15sp" android:textColor="#0D1B4B" />
                 </LinearLayout>
 
-                <!-- Reports -->
                 <LinearLayout android:id="@+id/drawerReports"
                     android:layout_width="match_parent" android:layout_height="52dp"
                     android:orientation="horizontal" android:gravity="center_vertical"
@@ -545,35 +528,20 @@
                     android:layout_marginTop="8dp" android:layout_marginBottom="8dp"
                     android:background="#F0F0F0" />
 
-                <!-- Add Faculty -->
-                <LinearLayout android:id="@+id/drawerAddFaculty"
-                    android:layout_width="match_parent" android:layout_height="52dp"
-                    android:orientation="horizontal" android:gravity="center_vertical"
-                    android:paddingStart="24dp" android:paddingEnd="24dp"
-                    android:clickable="true" android:focusable="true"
-                    android:background="?attr/selectableItemBackground">
-                    <ImageView android:layout_width="22dp" android:layout_height="22dp"
-                        android:src="@drawable/ic_person" app:tint="#1A73E8" />
-                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                        android:layout_marginStart="18dp" android:text="Add Faculty"
-                        android:textSize="15sp" android:textColor="#0D1B4B" />
-                </LinearLayout>
-
-                <!-- Approvals -->
+                <!-- Approvals — active highlight -->
                 <LinearLayout android:id="@+id/drawerApprovals"
                     android:layout_width="match_parent" android:layout_height="52dp"
                     android:orientation="horizontal" android:gravity="center_vertical"
                     android:paddingStart="24dp" android:paddingEnd="24dp"
                     android:clickable="true" android:focusable="true"
-                    android:background="?attr/selectableItemBackground">
+                    android:background="@drawable/bg_drawer_item_active">
                     <ImageView android:layout_width="22dp" android:layout_height="22dp"
                         android:src="@drawable/ic_check_circle" app:tint="#1A73E8" />
                     <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                         android:layout_marginStart="18dp" android:text="Approvals"
-                        android:textSize="15sp" android:textColor="#0D1B4B" />
+                        android:textSize="15sp" android:textColor="#1A73E8" android:textStyle="bold" />
                 </LinearLayout>
 
-                <!-- Profile -->
                 <LinearLayout android:id="@+id/drawerProfile"
                     android:layout_width="match_parent" android:layout_height="52dp"
                     android:orientation="horizontal" android:gravity="center_vertical"
@@ -593,7 +561,6 @@
         <View android:layout_width="match_parent" android:layout_height="1dp"
             android:background="#EEEEEE" />
 
-        <!-- LOGOUT -->
         <LinearLayout android:id="@+id/drawerLogout"
             android:layout_width="match_parent" android:layout_height="64dp"
             android:orientation="horizontal" android:gravity="center_vertical"

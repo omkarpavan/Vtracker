@@ -4,11 +4,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginStart="16dp"
-    android:layout_marginEnd="16dp"
     android:layout_marginBottom="14dp"
     app:cardCornerRadius="16dp"
-    app:cardElevation="5dp"
+    app:cardElevation="3dp"
     app:cardBackgroundColor="#FFFFFF">
 
     <LinearLayout
@@ -16,14 +14,20 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- ══ Header: faculty avatar + name + dept + status badge ══ -->
+        <!-- Green approved stripe at top -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="4dp"
+            android:background="#34A853" />
+
+        <!-- ── Header: avatar + name + APPROVED badge ─────────── -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
             android:paddingStart="14dp"
-            android:paddingEnd="10dp"
+            android:paddingEnd="14dp"
             android:paddingTop="14dp"
             android:paddingBottom="10dp">
 
@@ -60,19 +64,17 @@
                     android:id="@+id/tvCardDept"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Department"
+                    android:text="Emp ID: —"
                     android:textColor="#8A93B2"
                     android:textSize="11.5sp"
-                    android:layout_marginTop="1dp" />
-
+                    android:layout_marginTop="2dp" />
             </LinearLayout>
 
-            <!-- Status badge — set dynamically in Java -->
+            <!-- APPROVED badge — always green, always visible -->
             <TextView
-                android:id="@+id/tvCardStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="PENDING"
+                android:text="APPROVED"
                 android:textSize="9sp"
                 android:textStyle="bold"
                 android:textColor="#FFFFFF"
@@ -80,20 +82,63 @@
                 android:paddingEnd="8dp"
                 android:paddingTop="4dp"
                 android:paddingBottom="4dp"
-                android:layout_marginEnd="6dp"
                 android:background="@drawable/bg_status_badge"
-                android:visibility="gone" />
+                app:backgroundTint="#34A853" />
 
         </LinearLayout>
 
-        <!-- ══ Image ViewPager2 ══ -->
+        <!-- ── Date + Location row ─────────────────────────────── -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"
+            android:layout_marginBottom="8dp">
+
+            <ImageView
+                android:layout_width="13dp"
+                android:layout_height="13dp"
+                android:src="@drawable/ic_history"
+                app:tint="#8A93B2"
+                android:layout_marginEnd="4dp" />
+
+            <TextView
+                android:id="@+id/tvCardTime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="11.5sp"
+                android:textColor="#8A93B2" />
+
+            <View android:layout_width="0dp" android:layout_height="1dp" android:layout_weight="1" />
+
+            <ImageView
+                android:layout_width="13dp"
+                android:layout_height="13dp"
+                android:src="@drawable/ic_location_on"
+                app:tint="#34A853"
+                android:layout_marginEnd="4dp" />
+
+            <TextView
+                android:id="@+id/tvCardLocation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Loading..."
+                android:textSize="11.5sp"
+                android:textColor="#34A853"
+                android:maxLines="1"
+                android:ellipsize="end" />
+        </LinearLayout>
+
+        <!-- ── Images ViewPager ────────────────────────────────── -->
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/viewPagerImages"
             android:layout_width="match_parent"
             android:layout_height="200dp"
             android:visibility="gone" />
 
-        <!-- ══ Dot indicators ══ -->
         <LinearLayout
             android:id="@+id/layoutDots"
             android:layout_width="match_parent"
@@ -103,62 +148,35 @@
             android:layout_marginTop="4dp"
             android:visibility="gone" />
 
-        <!-- ══ Location ══ -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:paddingStart="14dp"
-            android:paddingEnd="14dp"
-            android:paddingTop="12dp">
-            <ImageView
-                android:layout_width="15dp"
-                android:layout_height="15dp"
-                android:src="@drawable/ic_location_on"
-                app:tint="#1A73E8" />
-            <TextView
-                android:id="@+id/tvCardLocation"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="5dp"
-                android:text="Loading location..."
-                android:textColor="#1A73E8"
-                android:textSize="12.5sp"
-                android:textStyle="bold"
-                android:maxLines="1"
-                android:ellipsize="end" />
-        </LinearLayout>
-
-        <!-- ══ Description ══ -->
+        <!-- ── Description ─────────────────────────────────────── -->
         <TextView
             android:id="@+id/tvCardDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="14dp"
             android:paddingEnd="14dp"
-            android:paddingTop="7dp"
-            android:text="Description"
+            android:paddingTop="8dp"
+            android:text=""
             android:textColor="#222222"
             android:textSize="13.5sp"
             android:lineSpacingExtra="2dp"
             android:maxLines="3"
             android:ellipsize="end" />
 
-        <!-- ══ Timestamp ══ -->
+        <!-- ── Timestamp ───────────────────────────────────────── -->
         <TextView
-            android:id="@+id/tvCardTime"
+            android:id="@+id/tvCardTimestamp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:paddingStart="14dp"
             android:paddingEnd="14dp"
             android:paddingTop="5dp"
             android:paddingBottom="12dp"
-            android:text="Jan 1, 2024 • 10:00 AM"
+            android:text=""
             android:textColor="#AAAAAA"
             android:textSize="11sp" />
 
-        <!-- ══ Divider ══ -->
+        <!-- ── Divider ──────────────────────────────────────────── -->
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
@@ -166,7 +184,7 @@
             android:layout_marginStart="14dp"
             android:layout_marginEnd="14dp" />
 
-        <!-- ══ Action Buttons ══ -->
+        <!-- ── Bottom row: approved tick + Map button ─────────── -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -177,24 +195,49 @@
             android:paddingBottom="14dp"
             android:gravity="center_vertical">
 
-            <!-- View Map (outlined) -->
+            <!-- Approved confirmed label -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_check_circle"
+                    app:tint="#34A853"
+                    android:layout_marginEnd="6dp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Visit Verified"
+                    android:textSize="12.5sp"
+                    android:textStyle="bold"
+                    android:textColor="#34A853" />
+            </LinearLayout>
+
+            <!-- Map button -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/btnViewMap"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="38dp"
-                android:layout_weight="1"
-                android:layout_marginEnd="8dp"
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackground"
-                app:cardCornerRadius="10dp"
+                app:cardCornerRadius="19dp"
                 app:cardElevation="0dp"
                 app:cardBackgroundColor="#EEF2FF">
+
+
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:gravity="center"
-                    android:orientation="horizontal">
+                    android:orientation="horizontal"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp">
                     <ImageView
                         android:layout_width="15dp"
                         android:layout_height="15dp"
@@ -206,40 +249,6 @@
                         android:layout_marginStart="5dp"
                         android:text="Map"
                         android:textColor="#1A73E8"
-                        android:textSize="12.5sp"
-                        android:textStyle="bold" />
-                </LinearLayout>
-            </androidx.cardview.widget.CardView>
-
-            <!-- Approve (filled blue) -->
-            <androidx.cardview.widget.CardView
-                android:id="@+id/btnApprove"
-                android:layout_width="0dp"
-                android:layout_height="38dp"
-                android:layout_weight="1"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardCornerRadius="10dp"
-                app:cardElevation="2dp"
-                app:cardBackgroundColor="#1A73E8">
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:gravity="center"
-                    android:orientation="horizontal">
-                    <ImageView
-                        android:layout_width="15dp"
-                        android:layout_height="15dp"
-                        android:src="@drawable/ic_check_circle"
-                        app:tint="#FFFFFF" />
-                    <TextView
-                        android:id="@+id/tvApproveLabel"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="5dp"
-                        android:text="Approve"
-                        android:textColor="#FFFFFF"
                         android:textSize="12.5sp"
                         android:textStyle="bold" />
                 </LinearLayout>

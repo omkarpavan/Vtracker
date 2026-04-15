@@ -1,0 +1,519 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F7FA">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="44dp"
+        android:paddingBottom="14dp"
+        android:background="#FFFFFF">
+
+        <ImageView
+            android:id="@+id/btnBack"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="#0D1B4B"
+            android:layout_marginEnd="12dp"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Add Faculty"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:textColor="#0D1B4B" />
+
+    </LinearLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false"
+        android:paddingBottom="24dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="16dp">
+
+            <!-- Hero Banner -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#1A73E8">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Expand Your Faculty"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:textColor="#FFFFFF"
+                        android:layout_marginBottom="6dp" />
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Onboard new academic members to the university ecosystem with precision and ease."
+                        android:textSize="13sp"
+                        android:textColor="#B3D1FF" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Tab Toggle -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="20dp"
+                app:cardCornerRadius="24dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#E8EEFF">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:padding="4dp"
+                    android:weightSum="2">
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/tabAddManually"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        app:cardCornerRadius="20dp"
+                        app:cardElevation="2dp"
+                        app:cardBackgroundColor="#1A73E8"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text="Add Manually"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="#FFFFFF" />
+                    </androidx.cardview.widget.CardView>
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/tabBulkUpload"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        app:cardCornerRadius="20dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="@android:color/transparent"
+                        android:clickable="true"
+                        android:focusable="true">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text="Bulk Upload"
+                            android:textSize="14sp"
+                            android:textColor="#8A93B2" />
+                    </androidx.cardview.widget.CardView>
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Add Manually Form -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardManualForm"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="20dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="FACULTY DETAILS"
+                        android:textSize="11sp"
+                        android:textStyle="bold"
+                        android:textColor="#5A7FA8"
+                        android:letterSpacing="0.08"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Full Name -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Full Name"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="#0D1B4B"
+                        android:layout_marginBottom="6dp" />
+                    <EditText
+                        android:id="@+id/etFacultyName"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_date_field"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:hint="Dr. Full Name"
+                        android:textColorHint="#B0B8CC"
+                        android:textColor="#0D1B4B"
+                        android:textSize="14sp"
+                        android:inputType="textPersonName"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Email -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="University Email"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="#0D1B4B"
+                        android:layout_marginBottom="6dp" />
+                    <EditText
+                        android:id="@+id/etFacultyEmail"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_date_field"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:hint="name@university.edu"
+                        android:textColorHint="#B0B8CC"
+                        android:textColor="#0D1B4B"
+                        android:textSize="14sp"
+                        android:inputType="textEmailAddress"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Phone -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Phone Number"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="#0D1B4B"
+                        android:layout_marginBottom="6dp" />
+                    <EditText
+                        android:id="@+id/etFacultyPhone"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_date_field"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:hint="10-digit mobile number"
+                        android:textColorHint="#B0B8CC"
+                        android:textColor="#0D1B4B"
+                        android:textSize="14sp"
+                        android:inputType="phone"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Employee ID -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Employee ID"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="#0D1B4B"
+                        android:layout_marginBottom="6dp" />
+                    <EditText
+                        android:id="@+id/etFacultyEmpId"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_date_field"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:hint="e.g. 02713"
+                        android:textColorHint="#B0B8CC"
+                        android:textColor="#0D1B4B"
+                        android:textSize="14sp"
+                        android:inputType="number"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Password -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Password"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="#0D1B4B"
+                        android:layout_marginBottom="6dp" />
+                    <EditText
+                        android:id="@+id/etFacultyPassword"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_date_field"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:hint="Set initial password"
+                        android:textColorHint="#B0B8CC"
+                        android:textColor="#0D1B4B"
+                        android:textSize="14sp"
+                        android:inputType="textPassword"
+                        android:layout_marginBottom="20dp" />
+
+                    <!-- Create User Button -->
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnCreateUser"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        app:cardCornerRadius="25dp"
+                        app:cardElevation="4dp"
+                        app:cardBackgroundColor="#1A73E8"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:layout_gravity="end">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text="Create User"
+                            android:textColor="#FFFFFF"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+                    </androidx.cardview.widget.CardView>
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Bulk Upload Card (hidden by default) -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardBulkUpload"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="24dp"
+                    android:gravity="center">
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="64dp"
+                        android:layout_height="64dp"
+                        app:cardCornerRadius="32dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="#EAF1FF"
+                        android:layout_marginBottom="14dp">
+                        <ImageView
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:layout_gravity="center"
+                            android:src="@drawable/ic_add_box"
+                            app:tint="#1A73E8" />
+                    </androidx.cardview.widget.CardView>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Bulk Upload"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#0D1B4B"
+                        android:layout_marginBottom="6dp" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Upload a CSV file with faculty details"
+                        android:textSize="13sp"
+                        android:textColor="#8A93B2"
+                        android:gravity="center"
+                        android:layout_marginBottom="20dp" />
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnSelectFile"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        app:cardCornerRadius="24dp"
+                        app:cardElevation="0dp"
+                        app:cardBackgroundColor="#EAF1FF"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:layout_marginBottom="12dp">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text="Select CSV File"
+                            android:textSize="14sp"
+                            android:textStyle="bold"
+                            android:textColor="#1A73E8" />
+                    </androidx.cardview.widget.CardView>
+
+                    <TextView
+                        android:id="@+id/tvSelectedFile"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text=""
+                        android:textSize="12sp"
+                        android:textColor="#34A853"
+                        android:layout_marginBottom="16dp" />
+
+                    <androidx.cardview.widget.CardView
+                        android:id="@+id/btnUploadCSV"
+                        android:layout_width="match_parent"
+                        android:layout_height="50dp"
+                        app:cardCornerRadius="25dp"
+                        app:cardElevation="4dp"
+                        app:cardBackgroundColor="#1A73E8"
+                        android:clickable="true"
+                        android:focusable="true"
+                        android:foreground="?attr/selectableItemBackground">
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:gravity="center"
+                            android:text="Upload"
+                            android:textColor="#FFFFFF"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+                    </androidx.cardview.widget.CardView>
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Info Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#FFF8E1">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:padding="14dp">
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_pending"
+                        app:tint="#FB8C00"
+                        android:layout_marginEnd="10dp" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Note"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="#E65100"
+                            android:layout_marginBottom="3dp" />
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Employee ID must be unique. The faculty member can log in using their Employee ID and the password you set."
+                            android:textSize="12sp"
+                            android:textColor="#8A6020" />
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!-- Bottom Nav — Admin: Dashboard, Search, Approvals, Profile -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="68dp"
+        android:orientation="horizontal"
+        android:weightSum="4"
+        android:background="#FFFFFF"
+        android:elevation="16dp">
+
+        <LinearLayout android:id="@+id/navDashboard"
+            android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:orientation="vertical" android:gravity="center"
+            android:clickable="true" android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+            <ImageView android:layout_width="24dp" android:layout_height="24dp"
+                android:src="@drawable/ic_home" app:tint="#AAAAAA" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Dashboard" android:textSize="9sp" android:textColor="#AAAAAA"
+                android:layout_marginTop="3dp" />
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/navSearch"
+            android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:orientation="vertical" android:gravity="center"
+            android:clickable="true" android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+            <ImageView android:layout_width="24dp" android:layout_height="24dp"
+                android:src="@drawable/ic_visibility" app:tint="#AAAAAA" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Search" android:textSize="9sp" android:textColor="#AAAAAA"
+                android:layout_marginTop="3dp" />
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/navApprovals"
+            android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:orientation="vertical" android:gravity="center"
+            android:clickable="true" android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+            <ImageView android:layout_width="24dp" android:layout_height="24dp"
+                android:src="@drawable/ic_check_circle" app:tint="#AAAAAA" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Approvals" android:textSize="9sp" android:textColor="#AAAAAA"
+                android:layout_marginTop="3dp" />
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/navProfile"
+            android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:orientation="vertical" android:gravity="center"
+            android:clickable="true" android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+            <ImageView android:layout_width="24dp" android:layout_height="24dp"
+                android:src="@drawable/ic_person" app:tint="#AAAAAA" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Profile" android:textSize="9sp" android:textColor="#AAAAAA"
+                android:layout_marginTop="3dp" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

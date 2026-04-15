@@ -56,9 +56,11 @@ public class LoginActivity extends BaseActivity {
     private static final String API_FACULTY =
             "http://160.187.169.14/jspapi/gps/getemployees.jsp?empcode=";
 
-    // Admin login API (new)
+    // Admin login API 
+    // Note: This was 192.168.10.25 - if you are on Mobile Data, 
+    // this IP will NOT work. You need a public IP.
     private static final String API_ADMIN =
-            "http://192.168.10.25/jspapi/gps/getadmin.jsp?empcode=";
+            "http://160.187.169.14/jspapi/gps/getadmin.jsp?empcode=";
 
     // ──────────────────────────────────────────────────────────────
     @Override
@@ -244,7 +246,7 @@ public class LoginActivity extends BaseActivity {
 
                     } catch (Exception e) {
                         Toast.makeText(this,
-                                "Response error: " + e.getMessage(),
+                                "Response error: " + e.getMessage() + "\nURL: " + url,
                                 Toast.LENGTH_LONG).show();
                     }
                 },
@@ -255,8 +257,10 @@ public class LoginActivity extends BaseActivity {
                     String errorMsg = "Network error. Please try again.";
                     if (error.networkResponse != null) {
                         errorMsg = "Server error: " + error.networkResponse.statusCode;
+                    } else if (error.getMessage() != null) {
+                        errorMsg = "Network error: " + error.getMessage();
                     }
-                    Toast.makeText(this, errorMsg, Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, errorMsg + "\nURL: " + url, Toast.LENGTH_LONG).show();
                 }
         );
 

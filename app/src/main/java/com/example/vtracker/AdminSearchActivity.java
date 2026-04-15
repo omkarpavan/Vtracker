@@ -1,6 +1,6 @@
 package com.example.vtracker;
 
-import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -12,15 +12,16 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
-import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -40,15 +41,16 @@ import java.net.URL;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class AdminActivity extends BaseActivity {
+public class AdminSearchActivity extends BaseActivity {
 
-    private static final String TAG = "AdminActivity";
+    private static final String TAG = "AdminSearchActivity";
 
     // ── API — UNCHANGED ────────────────────────────────────────────
     private static final String ALL_POSTS_API = "http://160.187.169.14/jspapi/gps/getallposts.jsp";
@@ -56,25 +58,20 @@ public class AdminActivity extends BaseActivity {
     private static final String PHOTO_BASE_IP = "http://160.187.169.24";
 
     // ── UI ─────────────────────────────────────────────────────────
-    private DrawerLayout drawerLayout;
-    private LinearLayout sideDrawer;
-
-    private TextView     tvGreeting, tvAvatarLetter;
-    private TextView     tvDrawerName, tvDrawerAvatarLetter, tvDrawerRole;
-    private TextView     tvTotalPosts, tvPendingCount, tvViewAll;
-    private LinearLayout containerPosts, layoutEmptyState;
-    private FrameLayout  loadingOverlay;
-
-    // Drawer items
-    private LinearLayout drawerHeaderProfile, drawerDashboard, drawerSearch,
-            drawerAllPosts, drawerReports, drawerApprovals, drawerAddFaculty, drawerProfile, drawerLogout;
+    private TextView     tvFromDate, tvToDate, tvResultCount, tvError;
+    private EditText     etEmpCode;
+    private CardView     btnSearchPosts;
+    private ProgressBar  progressBar;
+    private LinearLayout containerResults;
 
     // Bottom nav
-    private LinearLayout navDashboard, navSearch, navApprovals, navAddUsers, navProfile;
+    private LinearLayout navDashboard, navSearch, navApprovals, navProfile;
 
     // ── Data ───────────────────────────────────────────────────────
     private String adminName = "";
     private String adminId   = "";
+    private String selectedFromDate = null;   // yyyy-MM-dd for API
+    private String selectedToDate   = null;
 
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
@@ -84,169 +81,120 @@ public class AdminActivity extends BaseActivity {
         getWindow().setStatusBarColor(Color.parseColor("#FFFFFF"));
         getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-        setContentView(R.layout.activity_admin);
+        setContentView(R.layout.activity_admin_search);
 
         initViews();
         loadAdminData();
-        setListeners();
-        loadAllPosts();
+        // Auto-load all posts on open (no filters)
+        fetchPosts(null, null, null);
     }
 
-    // ── Bind views ─────────────────────────────────────────────────
     private void initViews() {
-        drawerLayout         = findViewById(R.id.drawerLayout);
-        sideDrawer           = findViewById(R.id.sideDrawer);
-        tvGreeting           = findViewById(R.id.tvGreeting);
-        tvAvatarLetter       = findViewById(R.id.tvAvatarLetter);
-        tvDrawerName         = findViewById(R.id.tvDrawerName);
-        tvDrawerAvatarLetter = findViewById(R.id.tvDrawerAvatarLetter);
-        tvDrawerRole         = findViewById(R.id.tvDrawerRole);
-        tvTotalPosts         = findViewById(R.id.tvTotalPosts);
-        tvPendingCount       = findViewById(R.id.tvPendingCount);
-        tvViewAll            = findViewById(R.id.tvViewAll);
-        containerPosts       = findViewById(R.id.containerPosts);
-        layoutEmptyState     = findViewById(R.id.layoutEmptyState);
-        loadingOverlay       = findViewById(R.id.loadingOverlay);
-        drawerHeaderProfile  = findViewById(R.id.drawerHeaderProfile);
-        drawerDashboard      = findViewById(R.id.drawerDashboard);
-        drawerSearch         = findViewById(R.id.drawerSearch);
-        drawerAllPosts       = findViewById(R.id.drawerAllPosts);
-        drawerReports        = findViewById(R.id.drawerReports);
-        drawerApprovals      = findViewById(R.id.drawerApprovals);
-        drawerAddFaculty     = findViewById(R.id.drawerAddFaculty);
-        drawerProfile        = findViewById(R.id.drawerProfile);
-        drawerLogout         = findViewById(R.id.drawerLogout);
-        navDashboard         = findViewById(R.id.navDashboard);
-        navSearch            = findViewById(R.id.navSearch);
-        navApprovals         = findViewById(R.id.navApprovals);
-        navAddUsers          = findViewById(R.id.navAddUsers);
-        navProfile           = findViewById(R.id.navProfile);
-        findViewById(R.id.ivMenu).setOnClickListener(v -> openDrawer());
+        tvFromDate       = findViewById(R.id.tvFromDate);
+        tvToDate         = findViewById(R.id.tvToDate);
+        tvResultCount    = findViewById(R.id.tvResultCount);
+        tvError          = findViewById(R.id.tvError);
+        etEmpCode        = findViewById(R.id.etEmpCode);
+        btnSearchPosts   = findViewById(R.id.btnSearchPosts);
+        progressBar      = findViewById(R.id.progressBar);
+        containerResults = findViewById(R.id.containerResults);
+        navDashboard     = findViewById(R.id.navDashboard);
+        navSearch        = findViewById(R.id.navSearch);
+        navApprovals     = findViewById(R.id.navApprovals);
+        navProfile       = findViewById(R.id.navProfile);
+
+        // Back button
+        findViewById(R.id.ivBack).setOnClickListener(v -> finish());
+
+        // Date pickers
+        tvFromDate.setOnClickListener(v -> showDatePicker(true));
+        tvToDate.setOnClickListener(v   -> showDatePicker(false));
+
+        // Search button
+        btnSearchPosts.setOnClickListener(v -> {
+            String empCode = etEmpCode.getText().toString().trim();
+            fetchPosts(selectedFromDate, selectedToDate,
+                    empCode.isEmpty() ? null : empCode);
+        });
+
+        // Bottom nav
+        navDashboard.setOnClickListener(v -> finish());
+        navSearch.setOnClickListener(v    -> { /* already here */ });
+        navApprovals.setOnClickListener(v -> {
+            Intent i = new Intent(this, ApprovalsActivity.class);
+            i.putExtra("USER_NAME",   adminName);
+            i.putExtra("EMPLOYEE_ID", adminId);
+            startActivity(i);
+        });
+        navProfile.setOnClickListener(v   -> {
+            Intent i = new Intent(this, ProfileActivity.class);
+            i.putExtra("USER_NAME",   adminName);
+            i.putExtra("EMPLOYEE_ID", adminId);
+            startActivity(i);
+        });
     }
 
-    // ── Load admin name/id ─────────────────────────────────────────
     private void loadAdminData() {
         adminName = getIntent().getStringExtra("USER_NAME");
         adminId   = getIntent().getStringExtra("EMPLOYEE_ID");
-
         if (adminName == null || adminName.isEmpty()) {
             SharedPreferences prefs = getSharedPreferences(
                     LoginActivity.PREF_NAME, MODE_PRIVATE);
             adminName = prefs.getString(LoginActivity.KEY_USER_NAME,   "Admin");
             adminId   = prefs.getString(LoginActivity.KEY_EMPLOYEE_ID, "");
         }
-
-        String display = (adminName != null && !adminName.isEmpty()) ? adminName : "Admin";
-        String letter  = String.valueOf(display.charAt(0)).toUpperCase();
-
-        tvGreeting.setText("Hello, " + display);
-        tvAvatarLetter.setText(letter);
-        tvDrawerName.setText(display);
-        tvDrawerAvatarLetter.setText(letter);
-        tvDrawerRole.setText(adminId != null && !adminId.isEmpty()
-                ? "ID: " + adminId : "Administrator");
     }
 
-    // ── Drawer helpers ─────────────────────────────────────────────
-    private void openDrawer()  { drawerLayout.openDrawer(sideDrawer); }
-    private void closeDrawer() { drawerLayout.closeDrawer(sideDrawer); }
-
-    // ── Navigation helpers ─────────────────────────────────────────
-    private void openSearch() {
-        closeDrawer();
-        Intent i = new Intent(this, AdminSearchActivity.class);
-        i.putExtra("USER_NAME",   adminName);
-        i.putExtra("EMPLOYEE_ID", adminId);
-        startActivity(i);
-    }
-
-    // ── FIX: opens ApprovalsActivity ──────────────────────────────
-    private void openAddFaculty() {
-        closeDrawer();
-        Intent i = new Intent(this, AddFacultyActivity.class);
-        i.putExtra("USER_NAME",   adminName);
-        i.putExtra("EMPLOYEE_ID", adminId);
-        startActivity(i);
-    }
-
-    private void openApprovals() {
-        closeDrawer();
-        Intent i = new Intent(this, ApprovalsActivity.class);
-        i.putExtra("USER_NAME",   adminName);
-        i.putExtra("EMPLOYEE_ID", adminId);
-        startActivity(i);
-    }
-
-    private void openProfile() {
-        closeDrawer();
-        Intent i = new Intent(this, ProfileActivity.class);
-        i.putExtra("USER_NAME",   adminName);
-        i.putExtra("EMPLOYEE_ID", adminId);
-        startActivity(i);
-    }
-
-    // ── All listeners ──────────────────────────────────────────────
-    private void setListeners() {
-
-        tvViewAll.setOnClickListener(v -> openSearch());
-
-        // Bottom nav
-        navDashboard.setOnClickListener(v ->
-                Toast.makeText(this, "Already on Dashboard", Toast.LENGTH_SHORT).show());
-        navSearch.setOnClickListener(v    -> openSearch());
-        navApprovals.setOnClickListener(v -> openApprovals());   // ← FIXED
-        navAddUsers.setOnClickListener(v  -> openAddFaculty());
-        navProfile.setOnClickListener(v   -> openProfile());
-
-        // Drawer header
-        drawerHeaderProfile.setOnClickListener(v -> openProfile());
-
-        // Drawer items
-        drawerDashboard.setOnClickListener(v -> {
-            closeDrawer();
-            Toast.makeText(this, "Already on Dashboard", Toast.LENGTH_SHORT).show();
-        });
-        drawerSearch.setOnClickListener(v    -> openSearch());
-        drawerAllPosts.setOnClickListener(v  -> openSearch());
-        drawerReports.setOnClickListener(v   -> {
-            closeDrawer();
-            Toast.makeText(this, "Reports coming soon", Toast.LENGTH_SHORT).show();
-        });
-        drawerApprovals.setOnClickListener(v -> openApprovals());  // ← FIXED
-        drawerAddFaculty.setOnClickListener(v -> openAddFaculty());
-        drawerProfile.setOnClickListener(v   -> openProfile());
-        drawerLogout.setOnClickListener(v    -> showLogoutDialog());
+    // ── Date picker ────────────────────────────────────────────────
+    private void showDatePicker(boolean isFrom) {
+        Calendar cal = Calendar.getInstance();
+        new DatePickerDialog(this, (view, year, month, day) -> {
+            // Display format: dd-MM-yyyy
+            String display = String.format("%02d-%02d-%04d", day, month + 1, year);
+            // API format: yyyy-MM-dd
+            String api     = String.format("%04d-%02d-%02d", year, month + 1, day);
+            if (isFrom) {
+                tvFromDate.setText(display);
+                tvFromDate.setTextColor(Color.parseColor("#0D1B4B"));
+                selectedFromDate = api;
+            } else {
+                tvToDate.setText(display);
+                tvToDate.setTextColor(Color.parseColor("#0D1B4B"));
+                selectedToDate = api;
+            }
+        }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show();
     }
 
     // ══════════════════════════════════════════════════════════════
-    //  Fetch all posts — API CALL UNCHANGED
+    //  Fetch posts — same getallposts.jsp endpoint, params appended
     // ══════════════════════════════════════════════════════════════
-    private void loadAllPosts() {
-        loadingOverlay.setVisibility(View.VISIBLE);
-        layoutEmptyState.setVisibility(View.GONE);
-        containerPosts.removeAllViews();
+    private void fetchPosts(String fromDate, String toDate, String empCode) {
+        progressBar.setVisibility(View.VISIBLE);
+        tvError.setVisibility(View.GONE);
+        tvResultCount.setText("");
+        containerResults.removeAllViews();
+
+        // Always fetch ALL posts — server ignores filter params,
+        // so we filter client-side after receiving the full list
+        Log.d(TAG, "Fetching all posts, will filter client-side."
+                + " empCode=" + empCode + " from=" + fromDate + " to=" + toDate);
 
         executor.execute(() -> {
             try {
                 String json = httpGet(ALL_POSTS_API);
-                Log.d(TAG, "All posts response: " + json);
-                runOnUiThread(() -> renderResults(json));
+                runOnUiThread(() -> renderResults(json, fromDate, toDate, empCode));
             } catch (Exception e) {
                 Log.e(TAG, "Fetch error: " + e.getMessage());
-                runOnUiThread(() -> {
-                    loadingOverlay.setVisibility(View.GONE);
-                    showEmpty("Network error: " + e.getMessage());
-                });
+                runOnUiThread(() -> showError("Network error: " + e.getMessage()));
             }
         });
     }
 
-    private void renderResults(String json) {
-        loadingOverlay.setVisibility(View.GONE);
+    private void renderResults(String json, String fromDate, String toDate, String empCode) {
+        progressBar.setVisibility(View.GONE);
 
         if (json == null || json.trim().isEmpty()) {
-            showEmpty("No posts available.");
-            tvTotalPosts.setText("0");
+            showError("No posts found.");
             return;
         }
 
@@ -261,21 +209,72 @@ public class AdminActivity extends BaseActivity {
                 array = wrapper.getJSONArray(key);
             }
 
-            if (array.length() == 0) {
-                showEmpty("No posts found.");
-                tvTotalPosts.setText("0");
-                return;
+            // ── Client-side filtering ─────────────────────────────
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            Date dFrom = null, dTo = null;
+            try {
+                if (fromDate != null && !fromDate.isEmpty()) dFrom = sdf.parse(fromDate);
+                if (toDate   != null && !toDate.isEmpty())   dTo   = sdf.parse(toDate);
+                // Make dTo inclusive — extend to end of that day
+                if (dTo != null) dTo = new Date(dTo.getTime() + 24 * 60 * 60 * 1000 - 1);
+            } catch (ParseException ignored) {}
+
+            // Normalise empCode filter — pad to 5 digits if numeric
+            String empFilter = "";
+            if (empCode != null && !empCode.trim().isEmpty()) {
+                try {
+                    empFilter = String.format("%05d",
+                            Integer.parseInt(empCode.trim().replaceAll("\\D", "")));
+                } catch (NumberFormatException e) {
+                    empFilter = empCode.trim().toLowerCase();
+                }
             }
 
-            tvTotalPosts.setText(String.valueOf(array.length()));
-            layoutEmptyState.setVisibility(View.GONE);
-
-            int pendingCount = 0;
-            LayoutInflater inflater = LayoutInflater.from(this);
-
+            List<JSONObject> filtered = new ArrayList<>();
             for (int i = 0; i < array.length(); i++) {
                 JSONObject post = array.getJSONObject(i);
 
+                // ── Empcode filter ────────────────────────────────
+                if (!empFilter.isEmpty()) {
+                    String postCode = post.optString("empcode", "").trim();
+                    try {
+                        postCode = String.format("%05d",
+                                Integer.parseInt(postCode.replaceAll("\\D", "")));
+                    } catch (NumberFormatException e) {
+                        postCode = postCode.toLowerCase();
+                    }
+                    if (!postCode.equals(empFilter)) continue;
+                }
+
+                // ── Date range filter ─────────────────────────────
+                if (dFrom != null || dTo != null) {
+                    String timeStr = post.optString("time", "").trim();
+                    // Extract just the date portion (first 10 chars: yyyy-MM-dd)
+                    if (timeStr.length() >= 10) timeStr = timeStr.substring(0, 10);
+                    try {
+                        Date postDate = sdf.parse(timeStr);
+                        if (postDate == null) continue;
+                        if (dFrom != null && postDate.before(dFrom)) continue;
+                        if (dTo   != null && postDate.after(dTo))    continue;
+                    } catch (ParseException e) {
+                        continue; // skip records with unparseable dates when filtering
+                    }
+                }
+
+                filtered.add(post);
+            }
+
+            if (filtered.isEmpty()) {
+                showError("No posts match your search.");
+                tvResultCount.setText("0 results");
+                return;
+            }
+
+            tvResultCount.setText("Showing " + filtered.size() + " result"
+                    + (filtered.size() == 1 ? "" : "s"));
+
+            LayoutInflater inflater = LayoutInflater.from(this);
+            for (JSONObject post : filtered) {
                 String postId  = post.optString("id", post.optString("visit_id", post.optString("gps_id", "")));
                 String empcode = post.optString("empcode",     "");
                 String desc    = post.optString("description", "");
@@ -284,8 +283,6 @@ public class AdminActivity extends BaseActivity {
                 String time    = post.optString("time",        "");
                 String status  = post.optString("status",      "");
 
-                if (status.equalsIgnoreCase("pending") || status.isEmpty()) pendingCount++;
-
                 List<String> imgs = new ArrayList<>();
                 JSONArray imgArr  = post.optJSONArray("images");
                 if (imgArr != null) {
@@ -293,23 +290,21 @@ public class AdminActivity extends BaseActivity {
                         imgs.add(imgArr.getString(j));
                 }
 
-                View card = inflater.inflate(R.layout.item_post_card, containerPosts, false);
+                View card = inflater.inflate(R.layout.item_post_card, containerResults, false);
                 bindCard(card, postId, empcode, desc, lat, lng, time, status, imgs);
-                containerPosts.addView(card);
+                containerResults.addView(card);
             }
-
-            tvPendingCount.setText(String.valueOf(pendingCount));
 
         } catch (Exception e) {
             Log.e(TAG, "Parse error: " + e.getMessage());
-            showEmpty("Error reading response: " + e.getMessage());
+            showError("Error reading response.");
         }
     }
 
-    // ── Bind one post card ────────────────────────────────────────
-    void bindCard(View card, String postId, String empcode, String description,
-                  String latitude, String longitude, String time,
-                  String status, List<String> imageUrls) {
+    // ── Bind one card — identical logic to AdminActivity ──────────
+    private void bindCard(View card, String postId, String empcode, String description,
+                          String latitude, String longitude, String time,
+                          String status, List<String> imageUrls) {
 
         ImageView    ivPhoto    = card.findViewById(R.id.ivCardFacultyPhoto);
         TextView     tvName     = card.findViewById(R.id.tvCardFacultyName);
@@ -324,23 +319,24 @@ public class AdminActivity extends BaseActivity {
         CardView     btnApprove = card.findViewById(R.id.btnApprove);
         TextView     tvApprove  = card.findViewById(R.id.tvApproveLabel);
 
+        // Pad empcode — UNCHANGED
         String paddedCode = empcode;
         try {
-            paddedCode = String.format("%05d",
-                    Integer.parseInt(empcode.replaceAll("\\D", "")));
+            paddedCode = String.format("%05d", Integer.parseInt(empcode.replaceAll("\\D", "")));
         } catch (NumberFormatException ignored) {}
 
         tvName.setText(paddedCode);
-        tvDept.setText("Emp ID: " + paddedCode);
+        tvDept.setText("Emp ID: FAC-" + paddedCode);
 
+        // Status badge
         if (!status.isEmpty()) {
             tvStatus.setVisibility(View.VISIBLE);
             tvStatus.setText(status.toUpperCase());
             tvStatus.getBackground().setTint(Color.parseColor(getStatusColor(status)));
         }
 
-        String photoUrl = PHOTO_BASE_IP + "/counselling_jspapi/StaffPhotos/"
-                + paddedCode + ".JPG";
+        // Faculty photo — UNCHANGED
+        String photoUrl = PHOTO_BASE_IP + "/counselling_jspapi/StaffPhotos/" + paddedCode + ".JPG";
         Glide.with(this)
                 .load(photoUrl)
                 .apply(new RequestOptions()
@@ -350,6 +346,7 @@ public class AdminActivity extends BaseActivity {
                         .error(android.R.drawable.ic_menu_myplaces))
                 .into(ivPhoto);
 
+        // Images ViewPager — UNCHANGED
         if (!imageUrls.isEmpty()) {
             pager.setVisibility(View.VISIBLE);
             pager.setAdapter(new ImagePagerAdapter(imageUrls));
@@ -372,6 +369,7 @@ public class AdminActivity extends BaseActivity {
         tvLocation.setText(latitude + ", " + longitude);
         reverseGeocode(latitude, longitude, tvLocation);
 
+        // Map button — UNCHANGED
         btnMap.setOnClickListener(v -> {
             try {
                 Intent mapIntent = new Intent(Intent.ACTION_VIEW,
@@ -382,42 +380,39 @@ public class AdminActivity extends BaseActivity {
                     startActivity(mapIntent);
                 } else {
                     startActivity(new Intent(Intent.ACTION_VIEW,
-                            Uri.parse("https://maps.google.com/?q="
-                                    + latitude + "," + longitude)));
+                            Uri.parse("https://maps.google.com/?q=" + latitude + "," + longitude)));
                 }
             } catch (Exception e) {
                 Toast.makeText(this, "Cannot open map.", Toast.LENGTH_SHORT).show();
             }
         });
 
-        final String finalCode = paddedCode;
+        // Approve button — calls server
+        final String finalCode   = paddedCode;
         final String finalPostId = postId;
         btnApprove.setOnClickListener(v ->
                 new AlertDialog.Builder(this)
                         .setTitle("Approve Visit")
-                        .setMessage("Approve this visit by " + finalCode + "?")
+                        .setMessage("Approve visit by employee " + finalCode + "?")
                         .setPositiveButton("Approve", (d, w) -> callApproveApi(finalPostId, finalCode, btnApprove, tvApprove))
                         .setNegativeButton("Cancel", null)
                         .show()
         );
     }
 
-    // ── Call approvepost.jsp on server ───────────────────────────
     private void callApproveApi(String postId, String empcode, CardView btnApprove, TextView tvApprove) {
         btnApprove.setEnabled(false);
         tvApprove.setText("Approving...");
-
         executor.execute(() -> {
             HttpURLConnection conn = null;
             try {
                 String urlStr = SERVER_BASE + "/jspapi/gps/approvepost.jsp"
                         + "?id=" + postId + "&empcode=" + empcode + "&status=approved";
-                URL url = new URL(urlStr);
+                java.net.URL url = new java.net.URL(urlStr);
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("GET");
                 conn.setConnectTimeout(8000);
                 conn.setReadTimeout(8000);
-
                 int code = conn.getResponseCode();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(
                         code == 200 ? conn.getInputStream() : conn.getErrorStream()));
@@ -425,18 +420,10 @@ public class AdminActivity extends BaseActivity {
                 String line;
                 while ((line = reader.readLine()) != null) sb.append(line);
                 reader.close();
-
                 String body = sb.toString().trim();
-                Log.d(TAG, "Approve response: " + body);
-
                 boolean success = false;
-                try {
-                    JSONObject resp = new JSONObject(body);
-                    success = resp.optBoolean("success", false);
-                } catch (Exception ignored) {
-                    success = body.contains("\"success\":true") || body.contains("success");
-                }
-
+                try { success = new JSONObject(body).optBoolean("success", false); }
+                catch (Exception ignored) { success = body.contains("true"); }
                 final boolean ok = success;
                 runOnUiThread(() -> {
                     if (ok) {
@@ -453,7 +440,7 @@ public class AdminActivity extends BaseActivity {
                 runOnUiThread(() -> {
                     btnApprove.setEnabled(true);
                     tvApprove.setText("Approve");
-                    Toast.makeText(this, "Network error: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
             } finally {
                 if (conn != null) conn.disconnect();
@@ -470,6 +457,7 @@ public class AdminActivity extends BaseActivity {
         return "#8A93B2";
     }
 
+    // ── buildImageUrl — UNCHANGED ──────────────────────────────────
     private String buildImageUrl(String path) {
         if (path == null || path.isEmpty()) return "";
         String normalized = path.replace("\\", "/");
@@ -516,6 +504,7 @@ public class AdminActivity extends BaseActivity {
         });
     }
 
+    // ── formatTime — UNCHANGED ─────────────────────────────────────
     private String formatTime(String raw) {
         if (raw == null || raw.isEmpty()) return "";
         try {
@@ -526,6 +515,7 @@ public class AdminActivity extends BaseActivity {
         } catch (ParseException e) { return raw; }
     }
 
+    // ── httpGet — UNCHANGED ────────────────────────────────────────
     private String httpGet(String urlStr) throws IOException {
         HttpURLConnection conn = null;
         try {
@@ -535,7 +525,6 @@ public class AdminActivity extends BaseActivity {
             conn.setConnectTimeout(15000);
             conn.setReadTimeout(15000);
             int code = conn.getResponseCode();
-            Log.d(TAG, "HTTP " + code + " ← " + urlStr);
             if (code == HttpURLConnection.HTTP_OK) {
                 BufferedReader br = new BufferedReader(
                         new InputStreamReader(conn.getInputStream()));
@@ -551,34 +540,14 @@ public class AdminActivity extends BaseActivity {
         }
     }
 
-    private void showEmpty(String msg) {
-        layoutEmptyState.setVisibility(View.VISIBLE);
+    private void showError(String msg) {
+        progressBar.setVisibility(View.GONE);
+        tvError.setVisibility(View.VISIBLE);
+        tvError.setText(msg);
     }
 
     private int dpToPx(int dp) {
         return Math.round(dp * getResources().getDisplayMetrics().density);
-    }
-
-    private void showLogoutDialog() {
-        closeDrawer();
-        new AlertDialog.Builder(this)
-                .setTitle("Logout")
-                .setMessage("Are you sure you want to logout?")
-                .setPositiveButton("Logout", (d, w) -> {
-                    LoginActivity.clearSession(this);
-                    Intent i = new Intent(this, LoginActivity.class);
-                    i.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                    startActivity(i);
-                    finish();
-                })
-                .setNegativeButton("Cancel", null)
-                .show();
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (drawerLayout.isDrawerOpen(sideDrawer)) closeDrawer();
-        else super.onBackPressed();
     }
 
     @Override
@@ -587,8 +556,8 @@ public class AdminActivity extends BaseActivity {
         executor.shutdownNow();
     }
 
-    // Image pager adapter — UNCHANGED
-    class ImagePagerAdapter extends RecyclerView.Adapter<ImagePagerAdapter.VH> {
+    // ── Image pager adapter — UNCHANGED ───────────────────────────
+    private class ImagePagerAdapter extends RecyclerView.Adapter<ImagePagerAdapter.VH> {
         private final List<String> urls;
         ImagePagerAdapter(List<String> urls) { this.urls = urls; }
 
@@ -604,7 +573,7 @@ public class AdminActivity extends BaseActivity {
 
         @Override
         public void onBindViewHolder(@NonNull VH h, int pos) {
-            Glide.with(AdminActivity.this)
+            Glide.with(AdminSearchActivity.this)
                     .load(buildImageUrl(urls.get(pos)))
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .placeholder(android.R.drawable.ic_menu_gallery)

@@ -29,12 +29,11 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-// ── Extends BaseActivity so Developer Options check runs here too ──
 public class ProfileActivity extends BaseActivity {
 
     private static final String TAG = "ProfileActivity";
 
-    // ── APIs ───────────────────────────────────────────────────────
+    // ── APIs — UNCHANGED ───────────────────────────────────────────
     private static final String EMPLOYEE_API_BASE =
             "http://160.187.169.14/jspapi/gps/getemployees.jsp?empcode=";
     private static final String PHOTO_API_BASE =
@@ -49,7 +48,8 @@ public class ProfileActivity extends BaseActivity {
     private FrameLayout loadingOverlay;
 
     // ── Data ───────────────────────────────────────────────────────
-    private String empCode = "";
+    private String empCode    = "";
+    private String intentName = "";   // name passed via Intent or SharedPrefs
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,17 +57,15 @@ public class ProfileActivity extends BaseActivity {
         getWindow().setStatusBarColor(Color.parseColor("#1A73E8"));
         getWindow().getDecorView().setSystemUiVisibility(
                 View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
-
         setContentView(R.layout.activity_profile);
 
         initViews();
         handleBackPress();
-        loadEmpCode();
+        loadLocalData();          // ← show name immediately from Intent / prefs
         fetchEmployeeProfile(empCode);
         setListeners();
     }
 
-    // ── Init Views ─────────────────────────────────────────────────
     private void initViews() {
         ivProfilePhoto    = findViewById(R.id.ivProfilePhoto);
         tvAvatarLetter    = findViewById(R.id.tvAvatarLetter);
@@ -84,37 +82,64 @@ public class ProfileActivity extends BaseActivity {
         loadingOverlay    = findViewById(R.id.loadingOverlay);
     }
 
-    // ── Load EmpCode ───────────────────────────────────────────────
-    private void loadEmpCode() {
-        empCode = getIntent().getStringExtra("EMPLOYEE_ID");
+    // ── Load name + empCode from Intent first, then SharedPrefs ───
+    // This runs BEFORE the network call so the screen is never blank.
+    private void loadLocalData() {
+        // 1. Try Intent extras (passed from AdminActivity / FacultyActivity)
+        empCode    = getIntent().getStringExtra("EMPLOYEE_ID");
+        intentName = getIntent().getStringExtra("USER_NAME");
 
-        if (empCode == null || empCode.isEmpty()) {
-            SharedPreferences prefs = getSharedPreferences(
-                    LoginActivity.PREF_NAME, MODE_PRIVATE);
-            empCode = prefs.getString(LoginActivity.KEY_EMPLOYEE_ID, "00001");
-        }
+        // 2. Fall back to SharedPreferences
+        SharedPreferences prefs = getSharedPreferences(
+                LoginActivity.PREF_NAME, MODE_PRIVATE);
 
-        if (empCode.isEmpty()) empCode = "00001";
+        if (empCode == null || empCode.isEmpty())
+            empCode = prefs.getString(LoginActivity.KEY_EMPLOYEE_ID, "");
+
+        if (intentName == null || intentName.isEmpty())
+            intentName = prefs.getString(LoginActivity.KEY_USER_NAME, "");
+
+        // 3. Last resort defaults
+        if (empCode.isEmpty())    empCode    = "00001";
+        if (intentName.isEmpty()) intentName = "";
+
+        // ── Show immediately so screen is never empty ──────────────
+        String displayName = intentName.isEmpty() ? "Employee" : intentName;
+        tvName.setText(displayName);
+        tvAvatarLetter.setText(getAvatarLetter(displayName));
+        tvEmpCode.setText(empCode);
+
+        // Also pre-fill from cached email/phone if available
+        String cachedEmail = prefs.getString(LoginActivity.KEY_USER_EMAIL, "");
+        String cachedPhone = prefs.getString(LoginActivity.KEY_USER_PHONE, "");
+        tvEmail.setText(cachedEmail.isEmpty() ? "Not Available" : cachedEmail);
+        tvPhone.setText(cachedPhone.isEmpty() ? "Not Available" : cachedPhone);
     }
 
-    // ── Handle Back Press ─────────────────────────────────────────
     private void handleBackPress() {
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
-            @Override
-            public void handleOnBackPressed() {
-                finish();
-            }
+            @Override public void handleOnBackPressed() { finish(); }
         });
     }
 
-    // ── Fetch Employee Profile ────────────────────────────────────
+    // ── Fetch from API — UNCHANGED except name fallback logic ─────
     private void fetchEmployeeProfile(String code) {
         showLoading(true);
 
         new Thread(() -> {
             try {
-                String paddedCode = String.format("%05d",
-                        Integer.parseInt(code.replaceAll("\\D", "")));
+                String paddedCode;
+                try {
+                    paddedCode = String.format("%05d",
+                            Integer.parseInt(code.replaceAll("\\D", "")));
+                } catch (NumberFormatException e) {
+                    // Non-numeric code (admin codes etc.) — skip API, show local data
+                    runOnUiThread(() -> {
+                        showLoading(false);
+                        // intentName already displayed in loadLocalData()
+                    });
+                    return;
+                }
 
                 String apiUrl = EMPLOYEE_API_BASE + paddedCode;
                 Log.d(TAG, "Fetching: " + apiUrl);
@@ -133,88 +158,84 @@ public class ProfileActivity extends BaseActivity {
                     String line;
                     while ((line = reader.readLine()) != null) sb.append(line);
                     reader.close();
-
                     Log.d(TAG, "Response: " + sb);
-                    parseAndDisplayEmployee(sb.toString(), paddedCode);
+                    parseAndDisplay(sb.toString(), paddedCode);
                 } else {
                     Log.e(TAG, "HTTP error: " + responseCode);
-                    runOnUiThread(() -> {
-                        showLoading(false);
-                        Toast.makeText(this,
-                                "Failed to load profile (HTTP " + responseCode + ")",
-                                Toast.LENGTH_SHORT).show();
-                        showFallbackUi(code);
-                    });
+                    runOnUiThread(() -> showLoading(false));
+                    // intentName already on screen — no need to show "Unknown"
                 }
                 conn.disconnect();
 
             } catch (Exception e) {
                 Log.e(TAG, "Error fetching profile", e);
-                runOnUiThread(() -> {
-                    showLoading(false);
-                    showFallbackUi(code);
-                });
+                runOnUiThread(() -> showLoading(false));
+                // intentName already on screen — no blank/unknown shown
             }
         }).start();
     }
 
-    // ── Parse JSON and Update UI ──────────────────────────────────
-    private void parseAndDisplayEmployee(String json, String paddedCode) {
+    // ── Parse JSON — only overwrite name if API returns a real value
+    private void parseAndDisplay(String json, String paddedCode) {
         try {
             JSONObject obj = new JSONObject(json);
 
-            String name          = obj.optString("name",          "");
-            String email         = obj.optString("email",         "");
-            String phone         = obj.optString("phoneno",       "");
-            String qualification = obj.optString("qualification", "");
-            String fetchedCode   = obj.optString("empcode",       paddedCode);
+            String apiName       = obj.optString("name",          "").trim();
+            String email         = obj.optString("email",         "").trim();
+            String phone         = obj.optString("phoneno",       "").trim();
+            String qualification = obj.optString("qualification", "").trim();
+            String fetchedCode   = obj.optString("empcode",       paddedCode).trim();
 
-            String displayEmail = (email.equals("0") || email.isEmpty())
+            // Only use API name if it's non-empty and not "null"
+            // Otherwise keep intentName (from login session)
+            String finalName = (!apiName.isEmpty() && !apiName.equalsIgnoreCase("null"))
+                    ? apiName
+                    : intentName;   // ← THIS is the fix for Admin showing "Unknown"
+
+            String displayEmail = (email.equals("0") || email.isEmpty()
+                    || email.equalsIgnoreCase("null"))
                     ? "Not Available" : email;
 
+            String displayPhone = (phone.isEmpty() || phone.equalsIgnoreCase("null"))
+                    ? "Not Available" : phone;
+
+            // Cache to SharedPrefs so future visits show correct name
             SharedPreferences.Editor editor = getSharedPreferences(
                     LoginActivity.PREF_NAME, MODE_PRIVATE).edit();
-            editor.putString(LoginActivity.KEY_USER_NAME,  name);
+            if (!finalName.isEmpty())
+                editor.putString(LoginActivity.KEY_USER_NAME, finalName);
             editor.putString(LoginActivity.KEY_USER_EMAIL, displayEmail);
-            editor.putString(LoginActivity.KEY_USER_PHONE, phone);
+            editor.putString(LoginActivity.KEY_USER_PHONE, displayPhone);
             editor.apply();
 
             runOnUiThread(() -> {
                 showLoading(false);
-                tvName.setText(name.isEmpty() ? "Unknown" : name);
+                tvName.setText(finalName.isEmpty() ? "Employee" : finalName);
+                tvAvatarLetter.setText(getAvatarLetter(finalName));
                 tvQualification.setText(qualification);
-                tvEmpCode.setText(fetchedCode);
+                tvEmpCode.setText(fetchedCode.isEmpty() ? paddedCode : fetchedCode);
                 tvEmail.setText(displayEmail);
-                tvPhone.setText(phone.isEmpty() ? "Not Available" : phone);
-                tvAvatarLetter.setText(getAvatarLetter(name));
-                loadProfilePhoto(fetchedCode);
+                tvPhone.setText(displayPhone);
+                loadProfilePhoto(paddedCode);
             });
 
         } catch (JSONException e) {
             Log.e(TAG, "JSON parse error", e);
-            runOnUiThread(() -> {
-                showLoading(false);
-                showFallbackUi(paddedCode);
-            });
+            runOnUiThread(() -> showLoading(false));
+            // intentName already displayed — nothing goes blank
         }
     }
 
-    // ── Get Avatar Letter (skip honorifics) ───────────────────────
     private String getAvatarLetter(String fullName) {
         if (fullName == null || fullName.isEmpty()) return "E";
-
         String cleaned = fullName
                 .replaceAll("(?i)^(Mr\\.|Mrs\\.|Ms\\.|Dr\\.|Prof\\.|Er\\.|Er\\s)\\s*", "")
                 .trim();
-
-        if (!cleaned.isEmpty()) {
-            return String.valueOf(cleaned.charAt(0)).toUpperCase();
-        }
-
-        return String.valueOf(fullName.charAt(0)).toUpperCase();
+        return String.valueOf(
+                (!cleaned.isEmpty() ? cleaned : fullName).charAt(0)
+        ).toUpperCase();
     }
 
-    // ── Load Profile Photo (Circular via Glide) ───────────────────
     private void loadProfilePhoto(String fetchedCode) {
         String photoUrl = PHOTO_API_BASE + fetchedCode + ".JPG";
         Log.d(TAG, "Photo URL: " + photoUrl);
@@ -234,8 +255,6 @@ public class ProfileActivity extends BaseActivity {
                             Object model,
                             com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target,
                             boolean isFirstResource) {
-                        Log.e(TAG, "Photo failed: " + photoUrl
-                                + " | " + (e != null ? e.getMessage() : "unknown"));
                         runOnUiThread(() -> {
                             ivProfilePhoto.setVisibility(View.GONE);
                             tvAvatarLetter.setVisibility(View.VISIBLE);
@@ -250,7 +269,6 @@ public class ProfileActivity extends BaseActivity {
                             com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target,
                             com.bumptech.glide.load.DataSource dataSource,
                             boolean isFirstResource) {
-                        Log.d(TAG, "Photo loaded: " + photoUrl);
                         runOnUiThread(() -> {
                             ivProfilePhoto.setVisibility(View.VISIBLE);
                             tvAvatarLetter.setVisibility(View.GONE);
@@ -261,33 +279,11 @@ public class ProfileActivity extends BaseActivity {
                 .into(ivProfilePhoto);
     }
 
-    // ── Fallback UI (from session cache) ─────────────────────────
-    private void showFallbackUi(String code) {
-        SharedPreferences prefs = getSharedPreferences(
-                LoginActivity.PREF_NAME, MODE_PRIVATE);
-        String cachedName  = prefs.getString(LoginActivity.KEY_USER_NAME,  "");
-        String cachedEmail = prefs.getString(LoginActivity.KEY_USER_EMAIL, "");
-        String cachedPhone = prefs.getString(LoginActivity.KEY_USER_PHONE, "");
-
-        tvName.setText(cachedName.isEmpty()   ? "Employee"      : cachedName);
-        tvQualification.setText("");
-        tvEmpCode.setText(code);
-        tvEmail.setText(cachedEmail.isEmpty() ? "Not Available" : cachedEmail);
-        tvPhone.setText(cachedPhone.isEmpty() ? "Not Available" : cachedPhone);
-
-        tvAvatarLetter.setText(getAvatarLetter(cachedName));
-        ivProfilePhoto.setVisibility(View.GONE);
-        tvAvatarLetter.setVisibility(View.VISIBLE);
-    }
-
-    // ── Show / Hide Loading ───────────────────────────────────────
     private void showLoading(boolean show) {
-        if (loadingOverlay != null) {
+        if (loadingOverlay != null)
             loadingOverlay.setVisibility(show ? View.VISIBLE : View.GONE);
-        }
     }
 
-    // ── Listeners ────────────────────────────────────────────────
     private void setListeners() {
         btnBack.setOnClickListener(v -> finish());
 
@@ -296,17 +292,14 @@ public class ProfileActivity extends BaseActivity {
                         Toast.LENGTH_SHORT).show());
 
         cardNotifications.setOnClickListener(v ->
-                Toast.makeText(this, "Notifications",
-                        Toast.LENGTH_SHORT).show());
+                Toast.makeText(this, "Notifications", Toast.LENGTH_SHORT).show());
 
         cardPrivacy.setOnClickListener(v ->
-                Toast.makeText(this, "Privacy & Security",
-                        Toast.LENGTH_SHORT).show());
+                Toast.makeText(this, "Privacy & Security", Toast.LENGTH_SHORT).show());
 
         cardLogout.setOnClickListener(v -> showLogoutDialog());
     }
 
-    // ── Logout Dialog ─────────────────────────────────────────────
     private void showLogoutDialog() {
         new AlertDialog.Builder(this)
                 .setTitle("Logout")

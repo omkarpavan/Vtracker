@@ -7,7 +7,7 @@
     android:orientation="vertical"
     android:background="#F5F7FA">
 
-    <!-- ══ TOP HEADER ════════════════════════════════════════════ -->
+    <!-- ── TOP HEADER ─────────────────────────────────────────── -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -20,34 +20,37 @@
         android:background="#1A73E8">
 
         <ImageView
-            android:id="@+id/btnBack"
+            android:id="@+id/ivBack"
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:padding="8dp"
             android:src="@drawable/ic_arrow_back"
-            android:tint="#FFFFFF"
+            app:tint="#FFFFFF"
             android:clickable="true"
             android:focusable="true"
             android:background="?attr/selectableItemBackgroundBorderless" />
 
         <TextView
-            android:id="@+id/tvTitle"
-            android:layout_width="0dp"
+            android:layout_width="322dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="VTracker"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="#FFFFFF"
             android:fontFamily="sans-serif-medium"
-            android:gravity="center" />
+            android:gravity="center"
+            android:text="VTracker"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
-        <!-- Spacer to balance the back arrow -->
-        <View android:layout_width="40dp" android:layout_height="40dp" />
+<!--        <ImageView-->
+<!--            android:id="@+id/ivNotification"-->
+<!--            android:layout_width="26dp"-->
+<!--            android:layout_height="26dp"-->
+<!--            android:src="@drawable/ic_notifications"-->
+<!--            app:tint="#555555" />-->
 
     </LinearLayout>
 
-    <!-- ══ SCROLLABLE BODY ════════════════════════════════════════ -->
+    <!-- ── SCROLLABLE BODY ────────────────────────────────────── -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -67,14 +70,14 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="My Visit History"
+                android:text="Search Faculty Posts"
                 android:textSize="24sp"
                 android:textStyle="bold"
                 android:textColor="#0D1B4B"
                 android:fontFamily="sans-serif-medium"
                 android:layout_marginBottom="18dp" />
 
-            <!-- ══ DATE FILTER CARD ══════════════════════════════ -->
+            <!-- ── SEARCH FILTER CARD ─────────────────────────── -->
             <androidx.cardview.widget.CardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -89,7 +92,7 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <!-- From / To row -->
+                    <!-- From / To Date row -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -104,7 +107,6 @@
                             android:layout_weight="1"
                             android:orientation="vertical"
                             android:layout_marginEnd="8dp">
-
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -112,7 +114,6 @@
                                 android:textSize="12sp"
                                 android:textColor="#8A93B2"
                                 android:layout_marginBottom="6dp" />
-
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="44dp"
@@ -121,16 +122,6 @@
                                 android:paddingStart="12dp"
                                 android:paddingEnd="8dp"
                                 android:background="@drawable/bg_date_field">
-
-                                <DatePicker
-                                    android:id="@+id/datePickerFrom"
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:calendarViewShown="false"
-                                    android:datePickerMode="spinner"
-                                    android:visibility="gone" />
-
                                 <TextView
                                     android:id="@+id/tvFromDate"
                                     android:layout_width="0dp"
@@ -141,7 +132,6 @@
                                     android:textColor="#8A93B2"
                                     android:clickable="true"
                                     android:focusable="true" />
-
                                 <ImageView
                                     android:layout_width="18dp"
                                     android:layout_height="18dp"
@@ -157,7 +147,6 @@
                             android:layout_weight="1"
                             android:orientation="vertical"
                             android:layout_marginStart="8dp">
-
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -165,7 +154,6 @@
                                 android:textSize="12sp"
                                 android:textColor="#8A93B2"
                                 android:layout_marginBottom="6dp" />
-
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="44dp"
@@ -174,7 +162,6 @@
                                 android:paddingStart="12dp"
                                 android:paddingEnd="8dp"
                                 android:background="@drawable/bg_date_field">
-
                                 <TextView
                                     android:id="@+id/tvToDate"
                                     android:layout_width="0dp"
@@ -185,7 +172,6 @@
                                     android:textColor="#8A93B2"
                                     android:clickable="true"
                                     android:focusable="true" />
-
                                 <ImageView
                                     android:layout_width="18dp"
                                     android:layout_height="18dp"
@@ -196,9 +182,47 @@
 
                     </LinearLayout>
 
-                    <!-- Search Visits button -->
+                    <!-- Employee Code field -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Employee Code (EmpCode)"
+                        android:textSize="12sp"
+                        android:textColor="#8A93B2"
+                        android:layout_marginBottom="6dp" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="44dp"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:layout_marginBottom="14dp"
+                        android:background="@drawable/bg_date_field">
+                        <ImageView
+                            android:layout_width="18dp"
+                            android:layout_height="18dp"
+                            android:src="@drawable/ic_person"
+                            app:tint="#8A93B2"
+                            android:layout_marginEnd="8dp" />
+                        <android.widget.EditText
+                            android:id="@+id/etEmpCode"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:hint="Enter faculty code (optional)"
+                            android:textSize="13sp"
+                            android:textColor="#0D1B4B"
+                            android:textColorHint="#B0B8CC"
+                            android:background="@android:color/transparent"
+                            android:inputType="text"
+                            android:imeOptions="actionSearch"
+                            android:singleLine="true" />
+                    </LinearLayout>
+
+                    <!-- Search Posts button -->
                     <androidx.cardview.widget.CardView
-                        android:id="@+id/btnSearchVisits"
+                        android:id="@+id/btnSearchPosts"
                         android:layout_width="match_parent"
                         android:layout_height="46dp"
                         android:clickable="true"
@@ -221,7 +245,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Search Visits"
+                                android:text="Search Posts"
                                 android:textSize="14sp"
                                 android:textStyle="bold"
                                 android:textColor="#FFFFFF" />
@@ -231,41 +255,58 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- ══ RECENT VISITS LABEL ════════════════════════════ -->
-            <TextView
-                android:layout_width="wrap_content"
+            <!-- ── RECENT VISITS label + result count ─────────── -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="RECENT VISITS"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                android:textColor="#8A93B2"
-                android:letterSpacing="0.1"
-                android:layout_marginBottom="12dp" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
 
-            <!-- Progress bar (shown while loading) -->
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Recent Visits"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:textColor="#0D1B4B" />
+
+                <TextView
+                    android:id="@+id/tvResultCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:textSize="12sp"
+                    android:textColor="#8A93B2" />
+
+            </LinearLayout>
+
+            <!-- Progress -->
             <ProgressBar
                 android:id="@+id/progressBar"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginTop="32dp"
-                android:layout_marginBottom="32dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginBottom="24dp"
+                android:indeterminateTint="#1A73E8"
                 android:visibility="gone" />
 
-            <!-- Error text -->
+            <!-- Error / empty -->
             <TextView
                 android:id="@+id/tvError"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
                 android:gravity="center"
                 android:textColor="#8A93B2"
                 android:textSize="14sp"
+                android:layout_marginTop="16dp"
                 android:visibility="gone" />
 
-            <!-- Dynamic cards injected here -->
+            <!-- Search result cards injected here -->
             <LinearLayout
-                android:id="@+id/containerCards"
+                android:id="@+id/containerResults"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical" />
@@ -273,7 +314,7 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- ══ BOTTOM NAV ════════════════════════════════════════════ -->
+    <!-- ── BOTTOM NAV ──────────────────────────────────────────── -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="68dp"
@@ -282,71 +323,51 @@
         android:background="#FFFFFF"
         android:elevation="16dp">
 
-        <LinearLayout
-            android:id="@+id/navHome"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:clickable="true"
-            android:focusable="true"
+        <LinearLayout android:id="@+id/navDashboard"
+            android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:orientation="vertical" android:gravity="center"
+            android:clickable="true" android:focusable="true"
             android:background="?attr/selectableItemBackground">
             <ImageView android:layout_width="24dp" android:layout_height="24dp"
                 android:src="@drawable/ic_home" app:tint="#AAAAAA" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Home" android:textSize="10sp" android:textColor="#AAAAAA"
+                android:text="Dashboard" android:textSize="9sp" android:textColor="#AAAAAA"
                 android:layout_marginTop="3dp" />
         </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/navPost"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:clickable="true"
-            android:focusable="true"
+        <LinearLayout android:id="@+id/navSearch"
+            android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:orientation="vertical" android:gravity="center"
+            android:clickable="true" android:focusable="true"
             android:background="?attr/selectableItemBackground">
             <ImageView android:layout_width="24dp" android:layout_height="24dp"
-                android:src="@drawable/ic_add_box" app:tint="#AAAAAA" />
+                android:src="@drawable/ic_visibility" app:tint="#1A73E8" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Post" android:textSize="10sp" android:textColor="#AAAAAA"
-                android:layout_marginTop="3dp" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/navHistory"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?attr/selectableItemBackground">
-            <ImageView android:layout_width="24dp" android:layout_height="24dp"
-                android:src="@drawable/ic_history" app:tint="#1A73E8" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="History" android:textSize="10sp" android:textColor="#1A73E8"
+                android:text="Search" android:textSize="9sp" android:textColor="#1A73E8"
                 android:textStyle="bold" android:layout_marginTop="3dp" />
         </LinearLayout>
 
-        <LinearLayout
-            android:id="@+id/navProfile"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:clickable="true"
-            android:focusable="true"
+        <LinearLayout android:id="@+id/navApprovals"
+            android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:orientation="vertical" android:gravity="center"
+            android:clickable="true" android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+            <ImageView android:layout_width="24dp" android:layout_height="24dp"
+                android:src="@drawable/ic_check_circle" app:tint="#AAAAAA" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Approvals" android:textSize="9sp" android:textColor="#AAAAAA"
+                android:layout_marginTop="3dp" />
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/navProfile"
+            android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:orientation="vertical" android:gravity="center"
+            android:clickable="true" android:focusable="true"
             android:background="?attr/selectableItemBackground">
             <ImageView android:layout_width="24dp" android:layout_height="24dp"
                 android:src="@drawable/ic_person" app:tint="#AAAAAA" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Profile" android:textSize="10sp" android:textColor="#AAAAAA"
+                android:text="Profile" android:textSize="9sp" android:textColor="#AAAAAA"
                 android:layout_marginTop="3dp" />
         </LinearLayout>
 
