@@ -25,10 +25,10 @@
             android:layout_height="40dp"
             android:padding="8dp"
             android:src="@drawable/ic_arrow_back"
-            android:tint="#FFFFFF"
             android:clickable="true"
             android:focusable="true"
-            android:background="?attr/selectableItemBackgroundBorderless" />
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="#FFFFFF" />
 
         <TextView
             android:id="@+id/tvTitle"
@@ -42,9 +42,7 @@
             android:fontFamily="sans-serif-medium"
             android:gravity="center" />
 
-        <!-- Spacer to balance the back arrow -->
         <View android:layout_width="40dp" android:layout_height="40dp" />
-
     </LinearLayout>
 
     <!-- ══ SCROLLABLE BODY ════════════════════════════════════════ -->
@@ -67,208 +65,539 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="My Visit History"
+                android:text="My Records"
                 android:textSize="24sp"
                 android:textStyle="bold"
                 android:textColor="#0D1B4B"
                 android:fontFamily="sans-serif-medium"
-                android:layout_marginBottom="18dp" />
+                android:layout_marginBottom="14dp" />
 
-            <!-- ══ DATE FILTER CARD ══════════════════════════════ -->
-            <androidx.cardview.widget.CardView
+            <!-- ══ TAB BAR ══════════════════════════════════════ -->
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="22dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="3dp"
-                app:cardBackgroundColor="#FFFFFF">
+                android:orientation="horizontal"
+                android:layout_marginBottom="18dp"
+                android:background="#FFFFFF"
+                android:elevation="2dp">
 
-                <LinearLayout
+                <!-- History Tab -->
+                <TextView
+                    android:id="@+id/tabHistory"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Visit History"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="#1A73E8"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground" />
+
+                <!-- Expenses Tab -->
+                <TextView
+                    android:id="@+id/tabExpenses"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Expenses"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="#8A93B2"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground" />
+            </LinearLayout>
+
+            <!-- Tab indicator row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="3dp"
+                android:orientation="horizontal"
+                android:layout_marginBottom="18dp">
+
+                <View
+                    android:id="@+id/indicatorHistory"
+                    android:layout_width="0dp"
+                    android:layout_height="3dp"
+                    android:layout_weight="1"
+                    android:background="#1A73E8" />
+
+                <View
+                    android:id="@+id/indicatorExpenses"
+                    android:layout_width="0dp"
+                    android:layout_height="3dp"
+                    android:layout_weight="1"
+                    android:background="#E0E0E0" />
+            </LinearLayout>
+
+            <!-- ══════════════════════════════════════════════════ -->
+            <!-- SECTION : HISTORY                                  -->
+            <!-- ══════════════════════════════════════════════════ -->
+            <LinearLayout
+                android:id="@+id/sectionHistory"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="visible">
+
+                <!-- DATE FILTER CARD -->
+                <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:layout_marginBottom="22dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="3dp"
+                    app:cardBackgroundColor="#FFFFFF">
 
-                    <!-- From / To row -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:weightSum="2"
-                        android:layout_marginBottom="14dp">
+                        android:orientation="vertical"
+                        android:padding="16dp">
 
-                        <!-- From Date -->
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical"
-                            android:layout_marginEnd="8dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="From Date"
-                                android:textSize="12sp"
-                                android:textColor="#8A93B2"
-                                android:layout_marginBottom="6dp" />
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="44dp"
-                                android:orientation="horizontal"
-                                android:gravity="center_vertical"
-                                android:paddingStart="12dp"
-                                android:paddingEnd="8dp"
-                                android:background="@drawable/bg_date_field">
-
-                                <DatePicker
-                                    android:id="@+id/datePickerFrom"
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:calendarViewShown="false"
-                                    android:datePickerMode="spinner"
-                                    android:visibility="gone" />
-
-                                <TextView
-                                    android:id="@+id/tvFromDate"
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:text="dd-mm-yyyy"
-                                    android:textSize="13sp"
-                                    android:textColor="#8A93B2"
-                                    android:clickable="true"
-                                    android:focusable="true" />
-
-                                <ImageView
-                                    android:layout_width="18dp"
-                                    android:layout_height="18dp"
-                                    android:src="@drawable/ic_history"
-                                    app:tint="#8A93B2" />
-                            </LinearLayout>
-                        </LinearLayout>
-
-                        <!-- To Date -->
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical"
-                            android:layout_marginStart="8dp">
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="To Date"
-                                android:textSize="12sp"
-                                android:textColor="#8A93B2"
-                                android:layout_marginBottom="6dp" />
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="44dp"
-                                android:orientation="horizontal"
-                                android:gravity="center_vertical"
-                                android:paddingStart="12dp"
-                                android:paddingEnd="8dp"
-                                android:background="@drawable/bg_date_field">
-
-                                <TextView
-                                    android:id="@+id/tvToDate"
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:text="dd-mm-yyyy"
-                                    android:textSize="13sp"
-                                    android:textColor="#8A93B2"
-                                    android:clickable="true"
-                                    android:focusable="true" />
-
-                                <ImageView
-                                    android:layout_width="18dp"
-                                    android:layout_height="18dp"
-                                    android:src="@drawable/ic_history"
-                                    app:tint="#8A93B2" />
-                            </LinearLayout>
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                    <!-- Search Visits button -->
-                    <androidx.cardview.widget.CardView
-                        android:id="@+id/btnSearchVisits"
-                        android:layout_width="match_parent"
-                        android:layout_height="46dp"
-                        android:clickable="true"
-                        android:focusable="true"
-                        android:foreground="?attr/selectableItemBackground"
-                        app:cardCornerRadius="23dp"
-                        app:cardElevation="2dp"
-                        app:cardBackgroundColor="#1A73E8">
+                        <!-- From / To row -->
                         <LinearLayout
                             android:layout_width="match_parent"
-                            android:layout_height="match_parent"
+                            android:layout_height="wrap_content"
                             android:orientation="horizontal"
-                            android:gravity="center">
-                            <ImageView
-                                android:layout_width="18dp"
-                                android:layout_height="18dp"
-                                android:src="@drawable/ic_visibility"
-                                app:tint="#FFFFFF"
-                                android:layout_marginEnd="8dp" />
+                            android:weightSum="2"
+                            android:layout_marginBottom="14dp">
+
+                            <!-- From Date -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:layout_marginEnd="8dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="From Date"
+                                    android:textSize="12sp"
+                                    android:textColor="#8A93B2"
+                                    android:layout_marginBottom="6dp" />
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="44dp"
+                                    android:orientation="horizontal"
+                                    android:gravity="center_vertical"
+                                    android:paddingStart="12dp"
+                                    android:paddingEnd="8dp"
+                                    android:background="@drawable/bg_date_field">
+
+                                    <TextView
+                                        android:id="@+id/tvFromDate"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:text="dd-mm-yyyy"
+                                        android:textSize="13sp"
+                                        android:textColor="#8A93B2"
+                                        android:clickable="true"
+                                        android:focusable="true" />
+
+                                    <ImageView
+                                        android:layout_width="18dp"
+                                        android:layout_height="18dp"
+                                        android:src="@drawable/ic_history"
+                                        app:tint="#8A93B2" />
+                                </LinearLayout>
+                            </LinearLayout>
+
+                            <!-- To Date -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:layout_marginStart="8dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="To Date"
+                                    android:textSize="12sp"
+                                    android:textColor="#8A93B2"
+                                    android:layout_marginBottom="6dp" />
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="44dp"
+                                    android:orientation="horizontal"
+                                    android:gravity="center_vertical"
+                                    android:paddingStart="12dp"
+                                    android:paddingEnd="8dp"
+                                    android:background="@drawable/bg_date_field">
+
+                                    <TextView
+                                        android:id="@+id/tvToDate"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:text="dd-mm-yyyy"
+                                        android:textSize="13sp"
+                                        android:textColor="#8A93B2"
+                                        android:clickable="true"
+                                        android:focusable="true" />
+
+                                    <ImageView
+                                        android:layout_width="18dp"
+                                        android:layout_height="18dp"
+                                        android:src="@drawable/ic_history"
+                                        app:tint="#8A93B2" />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <!-- Search Visits button -->
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/btnSearchVisits"
+                            android:layout_width="match_parent"
+                            android:layout_height="46dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?attr/selectableItemBackground"
+                            app:cardCornerRadius="23dp"
+                            app:cardElevation="2dp"
+                            app:cardBackgroundColor="#1A73E8">
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:orientation="horizontal"
+                                android:gravity="center">
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:src="@drawable/ic_visibility"
+                                    app:tint="#FFFFFF"
+                                    android:layout_marginEnd="8dp" />
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Search Visits"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold"
+                                    android:textColor="#FFFFFF" />
+                            </LinearLayout>
+                        </androidx.cardview.widget.CardView>
+
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- RECENT VISITS LABEL -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="RECENT VISITS"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="#8A93B2"
+                    android:letterSpacing="0.1"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Progress bar (history) -->
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="32dp"
+                    android:layout_marginBottom="32dp"
+                    android:visibility="gone" />
+
+                <!-- Error text (history) -->
+                <TextView
+                    android:id="@+id/tvError"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:gravity="center"
+                    android:textColor="#8A93B2"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
+
+                <!-- Dynamic history cards injected here -->
+                <LinearLayout
+                    android:id="@+id/containerCards"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
+
+            <!-- ══════════════════════════════════════════════════ -->
+            <!-- SECTION : EXPENSES                                 -->
+            <!-- ══════════════════════════════════════════════════ -->
+            <LinearLayout
+                android:id="@+id/sectionExpenses"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <!-- DATE FILTER CARD (Expenses) -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="3dp"
+                    app:cardBackgroundColor="#FFFFFF">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:weightSum="2"
+                            android:layout_marginBottom="14dp">
+
+                            <!-- From Date (Expenses) -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:layout_marginEnd="8dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="From Date"
+                                    android:textSize="12sp"
+                                    android:textColor="#8A93B2"
+                                    android:layout_marginBottom="6dp" />
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="44dp"
+                                    android:orientation="horizontal"
+                                    android:gravity="center_vertical"
+                                    android:paddingStart="12dp"
+                                    android:paddingEnd="8dp"
+                                    android:background="@drawable/bg_date_field">
+
+                                    <TextView
+                                        android:id="@+id/tvExpFromDate"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:text="dd-mm-yyyy"
+                                        android:textSize="13sp"
+                                        android:textColor="#8A93B2"
+                                        android:clickable="true"
+                                        android:focusable="true" />
+
+                                    <ImageView
+                                        android:layout_width="18dp"
+                                        android:layout_height="18dp"
+                                        android:src="@drawable/ic_history"
+                                        app:tint="#8A93B2" />
+                                </LinearLayout>
+                            </LinearLayout>
+
+                            <!-- To Date (Expenses) -->
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:orientation="vertical"
+                                android:layout_marginStart="8dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="To Date"
+                                    android:textSize="12sp"
+                                    android:textColor="#8A93B2"
+                                    android:layout_marginBottom="6dp" />
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="44dp"
+                                    android:orientation="horizontal"
+                                    android:gravity="center_vertical"
+                                    android:paddingStart="12dp"
+                                    android:paddingEnd="8dp"
+                                    android:background="@drawable/bg_date_field">
+
+                                    <TextView
+                                        android:id="@+id/tvExpToDate"
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:text="dd-mm-yyyy"
+                                        android:textSize="13sp"
+                                        android:textColor="#8A93B2"
+                                        android:clickable="true"
+                                        android:focusable="true" />
+
+                                    <ImageView
+                                        android:layout_width="18dp"
+                                        android:layout_height="18dp"
+                                        android:src="@drawable/ic_history"
+                                        app:tint="#8A93B2" />
+                                </LinearLayout>
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <!-- Search Expenses button -->
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/btnSearchExpenses"
+                            android:layout_width="match_parent"
+                            android:layout_height="46dp"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:foreground="?attr/selectableItemBackground"
+                            app:cardCornerRadius="23dp"
+                            app:cardElevation="2dp"
+                            app:cardBackgroundColor="#1A73E8">
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:orientation="horizontal"
+                                android:gravity="center">
+                                <ImageView
+                                    android:layout_width="18dp"
+                                    android:layout_height="18dp"
+                                    android:src="@drawable/ic_expenses"
+                                    app:tint="#FFFFFF"
+                                    android:layout_marginEnd="8dp" />
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Search Expenses"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold"
+                                    android:textColor="#FFFFFF" />
+                            </LinearLayout>
+                        </androidx.cardview.widget.CardView>
+
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Summary row: Approved + Pending totals -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:weightSum="2"
+                    android:layout_marginBottom="18dp">
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginEnd="8dp"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="2dp"
+                        app:cardBackgroundColor="#EAF3DE">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="14dp">
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Search Visits"
-                                android:textSize="14sp"
+                                android:text="Total Approved"
+                                android:textSize="11sp"
+                                android:textColor="#3B6D11" />
+                            <TextView
+                                android:id="@+id/tvTotalApproved"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="₹0"
+                                android:textSize="20sp"
                                 android:textStyle="bold"
-                                android:textColor="#FFFFFF" />
+                                android:textColor="#27500A" />
+                        </LinearLayout>
+                    </androidx.cardview.widget.CardView>
+
+                    <androidx.cardview.widget.CardView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_marginStart="8dp"
+                        app:cardCornerRadius="12dp"
+                        app:cardElevation="2dp"
+                        app:cardBackgroundColor="#FAEEDA">
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="14dp">
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Pending"
+                                android:textSize="11sp"
+                                android:textColor="#854F0B" />
+                            <TextView
+                                android:id="@+id/tvTotalPending"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="₹0"
+                                android:textSize="20sp"
+                                android:textStyle="bold"
+                                android:textColor="#633806" />
                         </LinearLayout>
                     </androidx.cardview.widget.CardView>
 
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
 
-            <!-- ══ RECENT VISITS LABEL ════════════════════════════ -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="RECENT VISITS"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                android:textColor="#8A93B2"
-                android:letterSpacing="0.1"
-                android:layout_marginBottom="12dp" />
+                <!-- EXPENSE ENTRIES LABEL -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="EXPENSE ENTRIES"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="#8A93B2"
+                    android:letterSpacing="0.1"
+                    android:layout_marginBottom="12dp" />
 
-            <!-- Progress bar (shown while loading) -->
-            <ProgressBar
-                android:id="@+id/progressBar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="32dp"
-                android:layout_marginBottom="32dp"
-                android:visibility="gone" />
+                <!-- Progress bar (expenses) -->
+                <ProgressBar
+                    android:id="@+id/progressBarExp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="32dp"
+                    android:layout_marginBottom="32dp"
+                    android:visibility="gone" />
 
-            <!-- Error text -->
-            <TextView
-                android:id="@+id/tvError"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:gravity="center"
-                android:textColor="#8A93B2"
-                android:textSize="14sp"
-                android:visibility="gone" />
+                <!-- Error text (expenses) -->
+                <TextView
+                    android:id="@+id/tvErrorExp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:gravity="center"
+                    android:textColor="#8A93B2"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
 
-            <!-- Dynamic cards injected here -->
-            <LinearLayout
-                android:id="@+id/containerCards"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical" />
+                <!-- Dynamic expense cards injected here -->
+                <LinearLayout
+                    android:id="@+id/containerExpenseCards"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical" />
+
+            </LinearLayout>
 
         </LinearLayout>
     </ScrollView>
@@ -278,7 +607,7 @@
         android:layout_width="match_parent"
         android:layout_height="68dp"
         android:orientation="horizontal"
-        android:weightSum="4"
+        android:weightSum="5"
         android:background="#FFFFFF"
         android:elevation="16dp">
 
@@ -331,6 +660,23 @@
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
                 android:text="History" android:textSize="10sp" android:textColor="#1A73E8"
                 android:textStyle="bold" android:layout_marginTop="3dp" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/navExpenses"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+            <ImageView android:layout_width="24dp" android:layout_height="24dp"
+                android:src="@drawable/ic_expenses" app:tint="#AAAAAA" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Expenses" android:textSize="10sp" android:textColor="#AAAAAA"
+                android:layout_marginTop="3dp" />
         </LinearLayout>
 
         <LinearLayout

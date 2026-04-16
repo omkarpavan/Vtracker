@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="14dp"
+    app:cardElevation="3dp"
+    app:cardBackgroundColor="#FFFFFF">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="14dp">
+
+        <!-- Top row: title + amount -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="6dp">
+
+            <TextView
+                android:id="@+id/tvExpenseTitle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Travel - Taxi"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="#0D1B4B"
+                android:fontFamily="sans-serif-medium" />
+
+            <TextView
+                android:id="@+id/tvExpenseAmount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="₹0"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="#1A73E8" />
+        </LinearLayout>
+
+        <!-- Optional description -->
+        <TextView
+            android:id="@+id/tvExpenseDesc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text=""
+            android:textSize="13sp"
+            android:textColor="#5A6480"
+            android:layout_marginBottom="8dp"
+            android:visibility="gone" />
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="#F0F2F6"
+            android:layout_marginBottom="8dp" />
+
+        <!-- Bottom row: date + status badge -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@drawable/ic_history"
+                app:tint="#8A93B2"
+                android:layout_marginEnd="6dp" />
+
+            <TextView
+                android:id="@+id/tvExpenseDate"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Apr 14, 2026 • 02:30 PM"
+                android:textSize="12sp"
+                android:textColor="#8A93B2" />
+
+            <!-- Status badge -->
+            <TextView
+                android:id="@+id/tvExpenseStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="APPROVED"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:paddingStart="10dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                android:background="@drawable/bg_status_badge"
+                android:visibility="visible" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView>

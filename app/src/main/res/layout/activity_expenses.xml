@@ -94,6 +94,59 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
+            <!-- ─────────────────────────────────────── -->
+            <!-- Trip Name -->
+            <!-- ─────────────────────────────────────── -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TRIP NAME"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="#5A7FA8"
+                android:letterSpacing="0.08"
+                android:layout_marginBottom="10dp" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_history"
+                        app:tint="#1A73E8"
+                        android:layout_marginEnd="10dp" />
+
+                    <EditText
+                        android:id="@+id/etTripName"
+                        android:layout_width="match_parent"
+                        android:layout_height="52dp"
+                        android:background="@null"
+                        android:hint="e.g. Delhi Conference 2025"
+                        android:textColorHint="#B0B8CC"
+                        android:textColor="#0D1B4B"
+                        android:textSize="14sp"
+                        android:inputType="textCapWords"
+                        android:imeOptions="actionNext"
+                        android:maxLines="1" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
             <!-- Duration of Trip -->
             <TextView
                 android:layout_width="wrap_content"
@@ -404,16 +457,30 @@
                 android:layout_marginTop="3dp" />
         </LinearLayout>
 
-        <LinearLayout android:id="@+id/navExpenses"
-            android:layout_width="0dp" android:layout_height="match_parent"
-            android:layout_weight="1" android:orientation="vertical" android:gravity="center"
-            android:clickable="true" android:focusable="true"
+        <LinearLayout
+            android:id="@+id/navExpenses"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:clickable="true"
+            android:focusable="true"
             android:background="?attr/selectableItemBackground">
-            <ImageView android:layout_width="22dp" android:layout_height="22dp"
-                android:src="@drawable/ic_history" app:tint="#1A73E8" />
-            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Expenses" android:textSize="9sp" android:textColor="#1A73E8"
-                android:textStyle="bold" android:layout_marginTop="3dp" />
+
+            <ImageView
+                android:layout_width="22dp"
+                android:layout_height="22dp"
+                android:src="@drawable/ic_expenses"
+                app:tint="#AAAAAA" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Expenses"
+                android:textSize="9sp"
+                android:textColor="#AAAAAA"
+                android:layout_marginTop="3dp" />
         </LinearLayout>
 
         <LinearLayout android:id="@+id/navProfile"

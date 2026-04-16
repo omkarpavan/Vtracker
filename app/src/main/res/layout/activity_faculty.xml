@@ -579,15 +579,29 @@
                     android:layout_marginTop="3dp" />
             </LinearLayout>
 
-            <LinearLayout android:id="@+id/navExpenses"
-                android:layout_width="0dp" android:layout_height="match_parent"
-                android:layout_weight="1" android:orientation="vertical" android:gravity="center"
-                android:clickable="true" android:focusable="true"
+            <LinearLayout
+                android:id="@+id/navExpenses"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:clickable="true"
+                android:focusable="true"
                 android:background="?attr/selectableItemBackground">
-                <ImageView android:layout_width="22dp" android:layout_height="22dp"
-                    android:src="@drawable/ic_history" app:tint="#AAAAAA" />
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                    android:text="Expenses" android:textSize="9sp" android:textColor="#AAAAAA"
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_expenses"
+                    app:tint="#AAAAAA" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Expenses"
+                    android:textSize="9sp"
+                    android:textColor="#AAAAAA"
                     android:layout_marginTop="3dp" />
             </LinearLayout>
             <LinearLayout android:id="@+id/navProfile"

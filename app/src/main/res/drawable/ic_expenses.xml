@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+
+    <!-- Receipt body -->
+    <path
+        android:fillColor="@android:color/white"
+        android:pathData="M6,2 L18,2 C18.55,2 19,2.45 19,3 L19,21 L16,19 L14,21 L12,19 L10,21 L8,19 L5,21 L5,3 C5,2.45 5.45,2 6,2 Z"
+        android:strokeColor="#000000"
+        android:strokeWidth="0" />
+
+    <!-- Receipt body (filled) -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M19,3 C19,2.45 18.55,2 18,2 L6,2 C5.45,2 5,2.45 5,3 L5,21 L8,19 L10,21 L12,19 L14,21 L16,19 L19,21 Z" />
+
+    <!-- Line 1 (white highlight) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M8,7 L16,7 C16.55,7 17,7.45 17,8 C17,8.55 16.55,9 16,9 L8,9 C7.45,9 7,8.55 7,8 C7,7.45 7.45,7 8,7 Z" />
+
+    <!-- Line 2 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M8,11 L16,11 C16.55,11 17,11.45 17,12 C17,12.55 16.55,13 16,13 L8,13 C7.45,13 7,12.55 7,12 C7,11.45 7.45,11 8,11 Z" />
+
+    <!-- Line 3 (short) -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M8,15 L13,15 C13.55,15 14,15.45 14,16 C14,16.55 13.55,17 13,17 L8,17 C7.45,17 7,16.55 7,16 C7,15.45 7.45,15 8,15 Z" />
+
+</vector>
