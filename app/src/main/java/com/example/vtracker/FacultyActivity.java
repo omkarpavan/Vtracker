@@ -15,6 +15,7 @@ import android.widget.Toast;
 import androidx.activity.OnBackPressedCallback;
 import androidx.cardview.widget.CardView;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -26,6 +27,7 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -34,6 +36,7 @@ public class FacultyActivity extends BaseActivity {
     // ── UI ─────────────────────────────────────────────────────────
     private DrawerLayout drawerLayout;
     private LinearLayout sideDrawer;
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     private TextView tvGreeting;
     private TextView tvDrawerName, tvDrawerAvatarLetter, tvDrawerEmployeeId;
@@ -105,6 +108,7 @@ public class FacultyActivity extends BaseActivity {
     private void initViews() {
         drawerLayout         = findViewById(R.id.drawerLayout);
         sideDrawer           = findViewById(R.id.sideDrawer);
+        swipeRefreshLayout   = findViewById(R.id.swipeRefreshLayout);
         tvGreeting           = findViewById(R.id.tvGreeting);
         tvDrawerName         = findViewById(R.id.tvDrawerName);
         tvDrawerAvatarLetter = findViewById(R.id.tvDrawerAvatarLetter);
@@ -146,6 +150,14 @@ public class FacultyActivity extends BaseActivity {
         cardActivity2       = findViewById(R.id.cardActivity2);
 
         layoutNoActivity    = findViewById(R.id.layoutNoActivity);
+
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setColorSchemeColors(Color.parseColor("#1A73E8"));
+            swipeRefreshLayout.setOnRefreshListener(() -> {
+                fetchRecentActivity();
+                fetchUnreadCount();
+            });
+        }
     }
 
     // ── Load user data ─────────────────────────────────────────────
@@ -209,6 +221,7 @@ public class FacultyActivity extends BaseActivity {
     private void fetchRecentActivity() {
         if (employeeId == null || employeeId.isEmpty()) {
             showNoActivity();
+            if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
             return;
         }
 
@@ -266,6 +279,7 @@ public class FacultyActivity extends BaseActivity {
 
                     final JSONArray finalArray = array;
                     runOnUiThread(() -> {
+                        if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
                         if (finalArray.length() == 0) {
                             showNoActivity();
                         } else {
@@ -273,11 +287,17 @@ public class FacultyActivity extends BaseActivity {
                         }
                     });
                 } else {
-                    runOnUiThread(this::showNoActivity);
+                    runOnUiThread(() -> {
+                        if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
+                        showNoActivity();
+                    });
                 }
             } catch (Exception e) {
                 Log.e("FacultyActivity", "fetchRecentActivity error: " + e.getMessage());
-                runOnUiThread(this::showNoActivity);
+                runOnUiThread(() -> {
+                    if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
+                    showNoActivity();
+                });
             } finally {
                 if (conn != null) conn.disconnect();
             }
@@ -297,7 +317,7 @@ public class FacultyActivity extends BaseActivity {
                         tvActivity1Title, tvActivity1Location, tvActivity1Time,
                         r1);
                 cardActivity1.setVisibility(View.VISIBLE);
-                cardActivity1.setOnClickListener(v -> openHistory());
+                cardActivity1.setOnClickListener(v -> openDetail(r1, tvActivity1Location.getText().toString()));
             } else {
                 cardActivity1.setVisibility(View.GONE);
             }
@@ -310,7 +330,7 @@ public class FacultyActivity extends BaseActivity {
                         tvActivity2Title, tvActivity2Location, tvActivity2Time,
                         r2);
                 cardActivity2.setVisibility(View.VISIBLE);
-                cardActivity2.setOnClickListener(v -> openHistory());
+                cardActivity2.setOnClickListener(v -> openDetail(r2, tvActivity2Location.getText().toString()));
             } else {
                 cardActivity2.setVisibility(View.GONE);
             }
@@ -325,15 +345,23 @@ public class FacultyActivity extends BaseActivity {
     private void bindActivityCard(CardView card, ImageView ivImage,
                                   TextView tvTitle, TextView tvLocation,
                                   TextView tvTime, JSONObject obj) {
-        // Title — try keys that HistoryActivity uses
-        String[] titleKeys = {"title", "subject", "description", "name",
-                "visit_title", "location", "place", "place_name"};
-        String title = "";
-        for (String k : titleKeys) {
-            String v = obj.optString(k, "").trim();
-            if (!v.isEmpty() && !v.equals("null")) { title = v; break; }
+        // Title — Try Trip Name first (Requested update)
+        String tripName = obj.optString("trip_name", "").trim();
+        if (tripName.isEmpty() || tripName.equals("null")) {
+            // fallback chain, excluding description if possible
+            String[] titleKeys = {"title", "subject", "name", "visit_title"};
+            for (String k : titleKeys) {
+                String v = obj.optString(k, "").trim();
+                if (!v.isEmpty() && !v.equals("null")) { tripName = v; break; }
+            }
         }
-        tvTitle.setText(title.isEmpty() ? "Field Visit" : title);
+        
+        // If still empty, use description as a last resort or "Field Visit"
+        if (tripName.isEmpty() || tripName.equals("null")) {
+            tripName = obj.optString("description", "").trim();
+        }
+        
+        tvTitle.setText(tripName.isEmpty() || tripName.equals("null") ? "Field Visit" : tripName);
 
         // Location — reverse geocode lat/lng to place name
         String lat = obj.optString("latitude",  "").trim();
@@ -392,6 +420,54 @@ public class FacultyActivity extends BaseActivity {
             ivImage.setImageResource(android.R.drawable.ic_menu_gallery);
             ivImage.setColorFilter(Color.parseColor("#C8CDD8"));
         }
+    }
+
+    private void openDetail(JSONObject obj, String locationText) {
+        Intent intent = new Intent(this, HistoryDetailActivity.class);
+        intent.putExtra("type", "history"); // Dashboard recent activity is usually history
+        intent.putExtra("userName", userName);
+        intent.putExtra("tripName", obj.optString("trip_name", ""));
+        intent.putExtra("title", locationText);
+        
+        String time = obj.optString("time", obj.optString("created_at", ""));
+        intent.putExtra("dateTime", formatFullDateTime(time));
+        
+        intent.putExtra("status", obj.optString("status", "pending"));
+        intent.putExtra("description", obj.optString("description", ""));
+        
+        ArrayList<String> imageUrls = new ArrayList<>();
+        JSONArray imgs = obj.optJSONArray("images");
+        if (imgs != null) {
+            for (int i = 0; i < imgs.length(); i++) {
+                String raw = imgs.optString(i, "").trim();
+                if (!raw.isEmpty() && !raw.equals("null")) {
+                    imageUrls.add(raw.startsWith("http") ? raw : SERVER_BASE + "/" + raw);
+                }
+            }
+        }
+        if (imageUrls.isEmpty()) {
+            for (String key : new String[]{"image1", "image2", "image3", "image", "photo", "img"}) {
+                String raw = obj.optString(key, "").trim();
+                if (!raw.isEmpty() && !raw.equals("null") && !raw.equals("-")) {
+                    imageUrls.add(raw.startsWith("http") ? raw : SERVER_BASE + "/" + raw);
+                }
+            }
+        }
+        intent.putStringArrayListExtra("images", imageUrls);
+        startActivity(intent);
+    }
+
+    private String formatFullDateTime(String raw) {
+        if (raw == null || raw.isEmpty() || raw.equals("null")) return "";
+        try {
+            java.text.SimpleDateFormat input = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault());
+            if (raw.contains("T")) raw = raw.replace("T", " ");
+            java.util.Date date = input.parse(raw.length() > 19 ? raw.substring(0, 19) : raw);
+            if (date != null) {
+                return new java.text.SimpleDateFormat("MMM dd, yyyy • hh:mm a", java.util.Locale.getDefault()).format(date);
+            }
+        } catch (Exception ignored) {}
+        return raw;
     }
 
     // ── Fetch unread notification count → update bell badge ───────
@@ -540,8 +616,8 @@ public class FacultyActivity extends BaseActivity {
     private void openProfile() {
         closeDrawer();
         Intent i = new Intent(this, ProfileActivity.class);
-        i.putExtra("EMPLOYEE_ID", employeeId);
         i.putExtra("USER_NAME", userName);
+        i.putExtra("EMPLOYEE_ID", employeeId);
         startActivity(i);
     }
 

@@ -111,6 +111,7 @@
                         android:clickable="true"
                         android:focusable="true">
                         <TextView
+                            android:id="@+id/tvTabManual"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:gravity="center"
@@ -131,6 +132,7 @@
                         android:clickable="true"
                         android:focusable="true">
                         <TextView
+                            android:id="@+id/tvTabBulk"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:gravity="center"
@@ -281,6 +283,52 @@
                         android:textColor="#0D1B4B"
                         android:textSize="14sp"
                         android:inputType="textPassword"
+                        android:layout_marginBottom="20dp" />
+
+                    <!-- Department -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Department"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="#0D1B4B"
+                        android:layout_marginBottom="6dp" />
+                    <EditText
+                        android:id="@+id/etFacultyDept"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_date_field"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:hint="e.g. Computer Science"
+                        android:textColorHint="#B0B8CC"
+                        android:textColor="#0D1B4B"
+                        android:textSize="14sp"
+                        android:inputType="text"
+                        android:layout_marginBottom="16dp" />
+
+                    <!-- Designation -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Designation"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="#0D1B4B"
+                        android:layout_marginBottom="6dp" />
+                    <EditText
+                        android:id="@+id/etFacultyDesig"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:background="@drawable/bg_date_field"
+                        android:paddingStart="14dp"
+                        android:paddingEnd="14dp"
+                        android:hint="e.g. Assistant Professor"
+                        android:textColorHint="#B0B8CC"
+                        android:textColor="#0D1B4B"
+                        android:textSize="14sp"
+                        android:inputType="text"
                         android:layout_marginBottom="20dp" />
 
                     <!-- Create User Button -->
@@ -457,12 +505,12 @@
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <!-- Bottom Nav — Admin: Dashboard, Search, Approvals, Profile -->
+    <!-- Bottom Nav — Admin Dashboard, Search, Add Users, Approvals, Profile -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="68dp"
         android:orientation="horizontal"
-        android:weightSum="4"
+        android:weightSum="5"
         android:background="#FFFFFF"
         android:elevation="16dp">
 
@@ -474,7 +522,7 @@
             <ImageView android:layout_width="24dp" android:layout_height="24dp"
                 android:src="@drawable/ic_home" app:tint="#AAAAAA" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Dashboard" android:textSize="9sp" android:textColor="#AAAAAA"
+                android:text="Dashboard" android:textSize="8sp" android:textColor="#AAAAAA"
                 android:layout_marginTop="3dp" />
         </LinearLayout>
 
@@ -486,8 +534,20 @@
             <ImageView android:layout_width="24dp" android:layout_height="24dp"
                 android:src="@drawable/ic_visibility" app:tint="#AAAAAA" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Search" android:textSize="9sp" android:textColor="#AAAAAA"
+                android:text="Search" android:textSize="8sp" android:textColor="#AAAAAA"
                 android:layout_marginTop="3dp" />
+        </LinearLayout>
+
+        <LinearLayout android:id="@+id/navAddUsers"
+            android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:orientation="vertical" android:gravity="center"
+            android:clickable="true" android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+            <ImageView android:layout_width="24dp" android:layout_height="24dp"
+                android:src="@drawable/ic_person" app:tint="#1A73E8" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Add Users" android:textSize="8sp" android:textColor="#1A73E8"
+                android:textStyle="bold" android:layout_marginTop="3dp" />
         </LinearLayout>
 
         <LinearLayout android:id="@+id/navApprovals"
@@ -498,7 +558,7 @@
             <ImageView android:layout_width="24dp" android:layout_height="24dp"
                 android:src="@drawable/ic_check_circle" app:tint="#AAAAAA" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Approvals" android:textSize="9sp" android:textColor="#AAAAAA"
+                android:text="Approvals" android:textSize="8sp" android:textColor="#AAAAAA"
                 android:layout_marginTop="3dp" />
         </LinearLayout>
 
@@ -510,7 +570,7 @@
             <ImageView android:layout_width="24dp" android:layout_height="24dp"
                 android:src="@drawable/ic_person" app:tint="#AAAAAA" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Profile" android:textSize="9sp" android:textColor="#AAAAAA"
+                android:text="Profile" android:textSize="8sp" android:textColor="#AAAAAA"
                 android:layout_marginTop="3dp" />
         </LinearLayout>
 

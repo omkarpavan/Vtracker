@@ -170,6 +170,46 @@
 
         </LinearLayout>
 
+        <!-- TRIP INFORMATION Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="20dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TRIP INFORMATION"
+                android:textColor="#5A7FA8"
+                android:textSize="12sp"
+                android:letterSpacing="0.1"
+                android:textStyle="bold"
+                android:paddingBottom="10dp" />
+
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="#FFFFFF">
+
+                <EditText
+                    android:id="@+id/etTripName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@null"
+                    android:hint="Enter Trip Name (e.g., Client Visit, Site Audit)"
+                    android:textColorHint="#AAAAAA"
+                    android:textColor="#333333"
+                    android:textSize="14sp"
+                    android:padding="14dp"
+                    android:inputType="text" />
+            </androidx.cardview.widget.CardView>
+        </LinearLayout>
+
         <!-- VISIT DOCUMENTATION Section -->
         <LinearLayout
             android:layout_width="match_parent"

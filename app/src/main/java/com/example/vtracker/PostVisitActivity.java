@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -59,15 +60,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-// ── Extends BaseActivity so Developer Options check runs here too ──
 public class PostVisitActivity extends BaseActivity {
 
-    // ── Constants ──────────────────────────────────────────────────
     private static final int    PERMISSION_REQUEST_CODE        = 1001;
     private static final int    CAMERA_REQUEST_CODE            = 1002;
     private static final int    GALLERY_REQUEST_CODE           = 1003;
     private static final int    CAMERA_PERMISSION_REQUEST_CODE = 1004;
-    private static final int    MAX_PHOTOS                     = 5;   // max images per post
+    private static final int    MAX_PHOTOS                     = 5;
     private static final String TAG                            = "PostVisitActivity";
 
     private static final String API_POST_WORK = "http://160.187.169.14/jspapi/gps/postwork.jsp";
@@ -75,34 +74,27 @@ public class PostVisitActivity extends BaseActivity {
     private static final String LINE_END    = "\r\n";
     private static final String TWO_HYPHENS = "--";
 
-    // ── UI ─────────────────────────────────────────────────────────
     private TextView     tvCoordinates, tvAddress, tvAutoSave;
-    private EditText     etVisitNotes;
+    private EditText     etTripName, etVisitNotes;
     private LinearLayout btnTakePhoto, layoutPhotos;
     private android.widget.Button btnSubmitReport;
     private ImageButton  btnRecenter;
 
-    // ── Map ────────────────────────────────────────────────────────
     private MapView              osmMapView;
     private MyLocationNewOverlay locationOverlay;
     private Marker               currentMarker;
 
-    // ── Location ───────────────────────────────────────────────────
     private FusedLocationProviderClient fusedClient;
     private LocationCallback            locationCallback;
     private double                      currentLat = 0.0, currentLng = 0.0;
 
-    // ── Data ───────────────────────────────────────────────────────
-    // ★ Changed: List of bitmaps instead of a single capturedBitmap
     private final List<Bitmap> capturedBitmaps = new ArrayList<>();
     private String employeeId = "";
     private String userName   = "";
 
-    // ── Auto-save ──────────────────────────────────────────────────
     private final Handler  autoSaveHandler  = new Handler(Looper.getMainLooper());
     private       Runnable autoSaveRunnable;
 
-    // ──────────────────────────────────────────────────────────────
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -127,6 +119,7 @@ public class PostVisitActivity extends BaseActivity {
         tvCoordinates   = findViewById(R.id.tvCoordinates);
         tvAddress       = findViewById(R.id.tvAddress);
         tvAutoSave      = findViewById(R.id.tvAutoSave);
+        etTripName      = findViewById(R.id.etTripName);
         etVisitNotes    = findViewById(R.id.etVisitNotes);
         btnTakePhoto    = findViewById(R.id.btnTakePhoto);
         layoutPhotos    = findViewById(R.id.layoutPhotos);
@@ -148,7 +141,6 @@ public class PostVisitActivity extends BaseActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    // ── OSMDroid ───────────────────────────────────────────────────
     private void initOsmMap() {
         osmMapView.setTileSource(TileSourceFactory.MAPNIK);
         osmMapView.setMultiTouchControls(true);
@@ -172,7 +164,6 @@ public class PostVisitActivity extends BaseActivity {
         osmMapView.invalidate();
     }
 
-    // ── Location ───────────────────────────────────────────────────
     private void initLocationClient() {
         fusedClient = LocationServices.getFusedLocationProviderClient(this);
         locationCallback = new LocationCallback() {
@@ -274,19 +265,22 @@ public class PostVisitActivity extends BaseActivity {
         }).start();
     }
 
-    // ── Auto-save ──────────────────────────────────────────────────
     private void setupAutoSave() {
         autoSaveRunnable = () -> {
             String notes = etVisitNotes.getText().toString().trim();
-            if (!notes.isEmpty()) {
+            String tripName = etTripName.getText().toString().trim();
+            if (!notes.isEmpty() || !tripName.isEmpty()) {
                 getSharedPreferences("draft_visit", MODE_PRIVATE)
-                        .edit().putString("notes_draft_" + employeeId, notes).apply();
+                        .edit()
+                        .putString("notes_draft_" + employeeId, notes)
+                        .putString("trip_draft_" + employeeId, tripName)
+                        .apply();
                 tvAutoSave.setText("Saved");
                 new Handler(Looper.getMainLooper())
                         .postDelayed(() -> tvAutoSave.setText("Auto-saving"), 2000);
             }
         };
-        etVisitNotes.addTextChangedListener(new TextWatcher() {
+        TextWatcher tw = new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int i, int c, int a) {}
             @Override public void onTextChanged(CharSequence s, int i, int b, int c) {
                 autoSaveHandler.removeCallbacks(autoSaveRunnable);
@@ -294,13 +288,17 @@ public class PostVisitActivity extends BaseActivity {
                 autoSaveHandler.postDelayed(autoSaveRunnable, 1500);
             }
             @Override public void afterTextChanged(Editable s) {}
-        });
-        String draft = getSharedPreferences("draft_visit", MODE_PRIVATE)
-                .getString("notes_draft_" + employeeId, "");
-        if (!draft.isEmpty()) etVisitNotes.setText(draft);
+        };
+        etVisitNotes.addTextChangedListener(tw);
+        etTripName.addTextChangedListener(tw);
+
+        SharedPreferences prefs = getSharedPreferences("draft_visit", MODE_PRIVATE);
+        String draftNotes = prefs.getString("notes_draft_" + employeeId, "");
+        String draftTrip  = prefs.getString("trip_draft_" + employeeId, "");
+        if (!draftNotes.isEmpty()) etVisitNotes.setText(draftNotes);
+        if (!draftTrip.isEmpty()) etTripName.setText(draftTrip);
     }
 
-    // ── Listeners ──────────────────────────────────────────────────
     private void setListeners() {
         btnRecenter.setOnClickListener(v -> {
             if (currentLat != 0.0) {
@@ -320,7 +318,6 @@ public class PostVisitActivity extends BaseActivity {
         btnSubmitReport.setOnClickListener(v -> submitReport());
     }
 
-    // ── Photo Options ──────────────────────────────────────────────
     private void showPhotoOptions() {
         new android.app.AlertDialog.Builder(this)
                 .setTitle("Add Photo")
@@ -350,21 +347,18 @@ public class PostVisitActivity extends BaseActivity {
     }
 
     private void openGallery() {
-        // ★ Allow multiple selection from gallery
         Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
         intent.setType("image/*");
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         startActivityForResult(Intent.createChooser(intent, "Select Photos"), GALLERY_REQUEST_CODE);
     }
 
-    // ── Activity Result ────────────────────────────────────────────
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode != RESULT_OK || data == null) return;
 
         if (requestCode == CAMERA_REQUEST_CODE) {
-            // Single photo from camera
             Bundle extras = data.getExtras();
             if (extras != null) {
                 Bitmap bitmap = (Bitmap) extras.get("data");
@@ -372,9 +366,7 @@ public class PostVisitActivity extends BaseActivity {
             }
 
         } else if (requestCode == GALLERY_REQUEST_CODE) {
-
             if (data.getClipData() != null) {
-                // ★ Multiple images selected
                 int count = data.getClipData().getItemCount();
                 int remaining = MAX_PHOTOS - capturedBitmaps.size();
                 int toAdd = Math.min(count, remaining);
@@ -390,35 +382,51 @@ public class PostVisitActivity extends BaseActivity {
                     Bitmap bitmap = decodeBitmapFromUri(uri);
                     if (bitmap != null) addPhoto(bitmap);
                 }
-
             } else if (data.getData() != null) {
-                // Single image selected
                 Bitmap bitmap = decodeBitmapFromUri(data.getData());
                 if (bitmap != null) addPhoto(bitmap);
             }
         }
     }
 
-    // ── Decode Bitmap from URI ─────────────────────────────────────
     @Nullable
     private Bitmap decodeBitmapFromUri(Uri uri) {
         try {
             InputStream is = getContentResolver().openInputStream(uri);
-            return BitmapFactory.decodeStream(is);
-        } catch (IOException e) {
+            BitmapFactory.Options options = new BitmapFactory.Options();
+            options.inJustDecodeBounds = true;
+            BitmapFactory.decodeStream(is, null, options);
+            is.close();
+
+            int inSampleSize = 1;
+            int reqWidth = 1024;
+            int reqHeight = 1024;
+            if (options.outHeight > reqHeight || options.outWidth > reqWidth) {
+                final int halfHeight = options.outHeight / 2;
+                final int halfWidth = options.outWidth / 2;
+                while ((halfHeight / inSampleSize) >= reqHeight && (halfWidth / inSampleSize) >= reqWidth) {
+                    inSampleSize *= 2;
+                }
+            }
+
+            options.inSampleSize = inSampleSize;
+            options.inJustDecodeBounds = false;
+            is = getContentResolver().openInputStream(uri);
+            Bitmap bitmap = BitmapFactory.decodeStream(is, null, options);
+            is.close();
+            return bitmap;
+        } catch (Exception e) {
             Log.e(TAG, "Failed to decode image: " + e.getMessage());
             return null;
         }
     }
 
-    // ── Add Photo to list + grid UI ────────────────────────────────
     private void addPhoto(Bitmap bitmap) {
         capturedBitmaps.add(bitmap);
-        addPhotoToGrid(bitmap, capturedBitmaps.size() - 1);
+        addPhotoToGrid(bitmap);
     }
 
-    // ── Render photo thumbnail in the horizontal scroll grid ───────
-    private void addPhotoToGrid(Bitmap bitmap, int index) {
+    private void addPhotoToGrid(Bitmap bitmap) {
         ImageView imageView = new ImageView(this);
         int sizePx = dpToPx(100);
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(sizePx, sizePx);
@@ -428,18 +436,12 @@ public class PostVisitActivity extends BaseActivity {
         imageView.setImageBitmap(bitmap);
         imageView.setClipToOutline(true);
         imageView.setBackground(getDrawable(R.drawable.bg_photo_rounded));
-        imageView.setTag(index); // store index for removal
 
-        // Long-press to remove a specific photo
         imageView.setOnLongClickListener(v -> {
-            int idx = (int) v.getTag();
-            if (idx >= 0 && idx < capturedBitmaps.size()) {
-                capturedBitmaps.remove(idx);
+            int index = layoutPhotos.indexOfChild(imageView);
+            if (index != -1) {
+                capturedBitmaps.remove(index);
                 layoutPhotos.removeView(imageView);
-                // Re-index remaining views
-                for (int i = 0; i < layoutPhotos.getChildCount(); i++) {
-                    layoutPhotos.getChildAt(i).setTag(i);
-                }
                 Toast.makeText(this, "Photo removed", Toast.LENGTH_SHORT).show();
             }
             return true;
@@ -448,14 +450,17 @@ public class PostVisitActivity extends BaseActivity {
         layoutPhotos.addView(imageView);
     }
 
-    // ══════════════════════════════════════════════════════════════
-    //  Submit Report
-    // ══════════════════════════════════════════════════════════════
     private void submitReport() {
+        String tripName = etTripName.getText().toString().trim();
         String notes = etVisitNotes.getText().toString().trim();
 
         if (currentLat == 0.0 && currentLng == 0.0) {
             Toast.makeText(this, "Waiting for GPS location...", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        if (tripName.isEmpty()) {
+            etTripName.setError("Trip name is required.");
+            etTripName.requestFocus();
             return;
         }
         if (notes.isEmpty()) {
@@ -469,7 +474,6 @@ public class PostVisitActivity extends BaseActivity {
         progressDialog.setCancelable(false);
         progressDialog.show();
 
-        // Snapshot the list on the main thread before background work
         List<Bitmap> photosToUpload = new ArrayList<>(capturedBitmaps);
 
         new Thread(() -> {
@@ -479,22 +483,25 @@ public class PostVisitActivity extends BaseActivity {
                         String.valueOf(currentLat),
                         String.valueOf(currentLng),
                         notes,
-                        photosToUpload        // ★ pass the full list
+                        tripName,
+                        photosToUpload
                 );
 
                 Log.d(TAG, "postwork response: [" + response + "]");
 
                 runOnUiThread(() -> {
                     progressDialog.dismiss();
-
                     if (response != null && (
                             response.toLowerCase().contains("success") ||
                                     response.toLowerCase().contains("posted")  ||
                                     response.toLowerCase().contains("inserted")||
                                     response.trim().equals("1"))) {
 
-                        getSharedPreferences("draft_visit", MODE_PRIVATE)
-                                .edit().remove("notes_draft_" + employeeId).apply();
+                        SharedPreferences.Editor editor = getSharedPreferences("draft_visit", MODE_PRIVATE).edit();
+                        editor.remove("notes_draft_" + employeeId);
+                        editor.remove("trip_draft_" + employeeId);
+                        editor.apply();
+
                         Toast.makeText(this,
                                 "Report submitted successfully!", Toast.LENGTH_SHORT).show();
                         finish();
@@ -518,16 +525,8 @@ public class PostVisitActivity extends BaseActivity {
         }).start();
     }
 
-    // ══════════════════════════════════════════════════════════════
-    //  Multipart POST → postwork.jsp
-    //
-    //  Text fields : empcode, latitude, longitude, textbox
-    //  File fields : multiple "photo" parts (one per image)
-    //                JSP loops over all file items → inserts each
-    //                into post_images table under the same post_id
-    // ══════════════════════════════════════════════════════════════
     private String postToServer(String empcode, String latitude, String longitude,
-                                String description, List<Bitmap> photos)
+                                String description, String tripName, List<Bitmap> photos)
             throws IOException {
 
         String boundary = "----Boundary" + System.currentTimeMillis();
@@ -540,7 +539,7 @@ public class PostVisitActivity extends BaseActivity {
             conn.setDoInput(true);
             conn.setDoOutput(true);
             conn.setUseCaches(false);
-            conn.setConnectTimeout(30000);   // slightly longer for multi-image uploads
+            conn.setConnectTimeout(30000);
             conn.setReadTimeout(30000);
             conn.setRequestMethod("POST");
             conn.setRequestProperty("Connection", "Keep-Alive");
@@ -549,15 +548,12 @@ public class PostVisitActivity extends BaseActivity {
 
             dos = new DataOutputStream(conn.getOutputStream());
 
-            // ── Text fields ───────────────────────────────────────
             writeTextField(dos, boundary, "empcode",   empcode);
             writeTextField(dos, boundary, "latitude",  latitude);
             writeTextField(dos, boundary, "longitude", longitude);
             writeTextField(dos, boundary, "textbox",   description);
+            writeTextField(dos, boundary, "trip_name", tripName);
 
-            // ── Image fields (one part per photo, all named "photo") ──
-            // JSP iterates every non-form FileItem, so sending N parts
-            // named "photo" results in N rows in post_images table.
             for (int i = 0; i < photos.size(); i++) {
                 Bitmap bitmap = photos.get(i);
                 String fileName = "photo_" + empcode + "_"
@@ -575,11 +571,9 @@ public class PostVisitActivity extends BaseActivity {
                 dos.writeBytes(LINE_END);
             }
 
-            // ── End boundary ──────────────────────────────────────
             dos.writeBytes(TWO_HYPHENS + boundary + TWO_HYPHENS + LINE_END);
             dos.flush();
 
-            // ── Read response ─────────────────────────────────────
             int code = conn.getResponseCode();
             Log.d(TAG, "HTTP code: " + code);
 
@@ -599,13 +593,12 @@ public class PostVisitActivity extends BaseActivity {
         }
     }
 
-    // ── Write one plain text field ─────────────────────────────────
     private void writeTextField(DataOutputStream dos, String boundary,
                                 String name, String value) throws IOException {
         dos.writeBytes(TWO_HYPHENS + boundary + LINE_END);
         dos.writeBytes("Content-Disposition: form-data; name=\"" + name + "\"" + LINE_END);
         dos.writeBytes(LINE_END);
-        dos.writeBytes(value);
+        dos.write(value.getBytes("UTF-8"));
         dos.writeBytes(LINE_END);
     }
 
@@ -613,10 +606,9 @@ public class PostVisitActivity extends BaseActivity {
         return Math.round(dp * getResources().getDisplayMetrics().density);
     }
 
-    // ── Lifecycle ──────────────────────────────────────────────────
     @Override
     protected void onResume() {
-        super.onResume(); // ← calls BaseActivity.onResume() → developer options check
+        super.onResume();
         osmMapView.onResume();
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {

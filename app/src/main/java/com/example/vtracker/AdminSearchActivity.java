@@ -4,26 +4,21 @@ import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.location.Address;
-import android.location.Geocoder;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
-import androidx.recyclerview.widget.RecyclerView;
-import androidx.viewpager2.widget.ViewPager2;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -38,98 +33,149 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class AdminSearchActivity extends BaseActivity {
 
     private static final String TAG = "AdminSearchActivity";
 
-    // ── API — UNCHANGED ────────────────────────────────────────────
-    private static final String ALL_POSTS_API = "http://160.187.169.14/jspapi/gps/getallposts.jsp";
-    private static final String SERVER_BASE   = "http://160.187.169.14";
-    private static final String PHOTO_BASE_IP = "http://160.187.169.24";
+    private static final String ALL_POSTS_API    = "http://160.187.169.14/jspapi/gps/getallposts.jsp";
+    private static final String ALL_EXPENSES_API = "http://160.187.169.14/jspapi/gps/getallexpenses.jsp";
+    private static final String SERVER_BASE      = "http://160.187.169.14";
+    private static final String PHOTO_BASE_IP    = "http://160.187.169.24";
 
-    // ── UI ─────────────────────────────────────────────────────────
-    private TextView     tvFromDate, tvToDate, tvResultCount, tvError;
-    private EditText     etEmpCode;
-    private CardView     btnSearchPosts;
-    private ProgressBar  progressBar;
-    private LinearLayout containerResults;
+    private SwipeRefreshLayout swipeRefreshLayout;
+    private TextView           tvFromDate, tvToDate, tvResultCount, tvError;
+    private EditText           etEmpCode;
+    private CardView           btnSearchPosts;
+    private LinearLayout       containerResults;
 
-    // Bottom nav
-    private LinearLayout navDashboard, navSearch, navApprovals, navProfile;
+    private TextView tabHistory, tabExpenses;
+    private View     indicatorHistory, indicatorExpenses;
 
-    // ── Data ───────────────────────────────────────────────────────
-    private String adminName = "";
-    private String adminId   = "";
-    private String selectedFromDate = null;   // yyyy-MM-dd for API
+    private LinearLayout navDashboard, navSearch, navApprovals, navAddUsers, navProfile;
+
+    private String adminName        = "";
+    private String adminId          = "";
+    private String selectedFromDate = null;
     private String selectedToDate   = null;
+    private String currentMode      = "visits";
 
+    // FIX: Track whether initial load succeeded
+    private volatile boolean dataLoadedSuccessfully = false;
+
+    private final AtomicInteger fetchToken = new AtomicInteger(0);
     private final ExecutorService executor = Executors.newCachedThreadPool();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().setStatusBarColor(Color.parseColor("#FFFFFF"));
-        getWindow().getDecorView().setSystemUiVisibility(
-                View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
         setContentView(R.layout.activity_admin_search);
-
         initViews();
         loadAdminData();
-        // Auto-load all posts on open (no filters)
-        fetchPosts(null, null, null);
+        updateTabUI();
+        // FIX: Fetch data immediately on create, not in onResume
+        fetchData();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // FIX: Only re-fetch if previous load failed — don't double-fetch on create
+        if (!dataLoadedSuccessfully) {
+            fetchData();
+        }
     }
 
     private void initViews() {
-        tvFromDate       = findViewById(R.id.tvFromDate);
-        tvToDate         = findViewById(R.id.tvToDate);
-        tvResultCount    = findViewById(R.id.tvResultCount);
-        tvError          = findViewById(R.id.tvError);
-        etEmpCode        = findViewById(R.id.etEmpCode);
-        btnSearchPosts   = findViewById(R.id.btnSearchPosts);
-        progressBar      = findViewById(R.id.progressBar);
-        containerResults = findViewById(R.id.containerResults);
-        navDashboard     = findViewById(R.id.navDashboard);
-        navSearch        = findViewById(R.id.navSearch);
-        navApprovals     = findViewById(R.id.navApprovals);
-        navProfile       = findViewById(R.id.navProfile);
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
+        tvFromDate         = findViewById(R.id.tvFromDate);
+        tvToDate           = findViewById(R.id.tvToDate);
+        tvResultCount      = findViewById(R.id.tvResultCount);
+        tvError            = findViewById(R.id.tvError);
+        etEmpCode          = findViewById(R.id.etEmpCode);
+        btnSearchPosts     = findViewById(R.id.btnSearchPosts);
+        containerResults   = findViewById(R.id.containerResults);
+        tabHistory         = findViewById(R.id.tabHistory);
+        tabExpenses        = findViewById(R.id.tabExpenses);
+        indicatorHistory   = findViewById(R.id.indicatorHistory);
+        indicatorExpenses  = findViewById(R.id.indicatorExpenses);
+        navDashboard       = findViewById(R.id.navDashboard);
+        navSearch          = findViewById(R.id.navSearch);
+        navApprovals       = findViewById(R.id.navApprovals);
+        navAddUsers        = findViewById(R.id.navAddUsers);
+        navProfile         = findViewById(R.id.navProfile);
 
-        // Back button
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setColorSchemeColors(Color.parseColor("#1A73E8"));
+            swipeRefreshLayout.setOnRefreshListener(() -> {
+                // FIX: Manual swipe always forces a re-fetch
+                dataLoadedSuccessfully = false;
+                fetchData();
+            });
+        }
+
         findViewById(R.id.ivBack).setOnClickListener(v -> finish());
-
-        // Date pickers
         tvFromDate.setOnClickListener(v -> showDatePicker(true));
         tvToDate.setOnClickListener(v   -> showDatePicker(false));
 
-        // Search button
-        btnSearchPosts.setOnClickListener(v -> {
-            String empCode = etEmpCode.getText().toString().trim();
-            fetchPosts(selectedFromDate, selectedToDate,
-                    empCode.isEmpty() ? null : empCode);
+        tabHistory.setOnClickListener(v -> {
+            if ("visits".equals(currentMode)) return; // FIX: No-op if already on tab
+            currentMode = "visits";
+            dataLoadedSuccessfully = false;
+            updateTabUI();
+            fetchData();
+        });
+        tabExpenses.setOnClickListener(v -> {
+            if ("expenses".equals(currentMode)) return; // FIX: No-op if already on tab
+            currentMode = "expenses";
+            dataLoadedSuccessfully = false;
+            updateTabUI();
+            fetchData();
         });
 
-        // Bottom nav
-        navDashboard.setOnClickListener(v -> finish());
-        navSearch.setOnClickListener(v    -> { /* already here */ });
-        navApprovals.setOnClickListener(v -> {
-            Intent i = new Intent(this, ApprovalsActivity.class);
-            i.putExtra("USER_NAME",   adminName);
-            i.putExtra("EMPLOYEE_ID", adminId);
+        btnSearchPosts.setOnClickListener(v -> {
+            dataLoadedSuccessfully = false;
+            fetchData();
+        });
+
+        navDashboard.setOnClickListener(v -> {
+            Intent i = new Intent(this, AdminActivity.class);
+            i.putExtra("USER_NAME", adminName); i.putExtra("EMPLOYEE_ID", adminId);
+            i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            startActivity(i); finish();
+        });
+        navSearch.setOnClickListener(v -> {
+            dataLoadedSuccessfully = false;
+            fetchData();
+        });
+        navAddUsers.setOnClickListener(v -> {
+            Intent i = new Intent(this, AddFacultyActivity.class);
+            i.putExtra("USER_NAME", adminName); i.putExtra("EMPLOYEE_ID", adminId);
             startActivity(i);
         });
-        navProfile.setOnClickListener(v   -> {
+        navApprovals.setOnClickListener(v -> {
+            Intent i = new Intent(this, ApprovalsActivity.class);
+            i.putExtra("USER_NAME", adminName); i.putExtra("EMPLOYEE_ID", adminId);
+            startActivity(i);
+        });
+        navProfile.setOnClickListener(v -> {
             Intent i = new Intent(this, ProfileActivity.class);
-            i.putExtra("USER_NAME",   adminName);
-            i.putExtra("EMPLOYEE_ID", adminId);
+            i.putExtra("USER_NAME", adminName); i.putExtra("EMPLOYEE_ID", adminId);
             startActivity(i);
         });
     }
@@ -138,204 +184,233 @@ public class AdminSearchActivity extends BaseActivity {
         adminName = getIntent().getStringExtra("USER_NAME");
         adminId   = getIntent().getStringExtra("EMPLOYEE_ID");
         if (adminName == null || adminName.isEmpty()) {
-            SharedPreferences prefs = getSharedPreferences(
-                    LoginActivity.PREF_NAME, MODE_PRIVATE);
-            adminName = prefs.getString(LoginActivity.KEY_USER_NAME,   "Admin");
+            SharedPreferences prefs = getSharedPreferences(LoginActivity.PREF_NAME, MODE_PRIVATE);
+            adminName = prefs.getString(LoginActivity.KEY_USER_NAME, "Admin");
             adminId   = prefs.getString(LoginActivity.KEY_EMPLOYEE_ID, "");
         }
     }
 
-    // ── Date picker ────────────────────────────────────────────────
+    private void updateTabUI() {
+        boolean isVisits = "visits".equals(currentMode);
+        tabHistory.setTextColor(Color.parseColor(isVisits ? "#1A73E8" : "#8A93B2"));
+        tabExpenses.setTextColor(Color.parseColor(isVisits ? "#8A93B2" : "#1A73E8"));
+        indicatorHistory.setBackgroundColor(Color.parseColor(isVisits ? "#1A73E8" : "#E0E0E0"));
+        indicatorExpenses.setBackgroundColor(Color.parseColor(isVisits ? "#E0E0E0" : "#1A73E8"));
+        TextView tvLabel = findViewById(R.id.tvResultsLabel);
+        if (tvLabel != null) tvLabel.setText(isVisits ? "Recent Visits" : "Recent Expenses");
+    }
+
     private void showDatePicker(boolean isFrom) {
         Calendar cal = Calendar.getInstance();
         new DatePickerDialog(this, (view, year, month, day) -> {
-            // Display format: dd-MM-yyyy
             String display = String.format("%02d-%02d-%04d", day, month + 1, year);
-            // API format: yyyy-MM-dd
             String api     = String.format("%04d-%02d-%02d", year, month + 1, day);
-            if (isFrom) {
-                tvFromDate.setText(display);
-                tvFromDate.setTextColor(Color.parseColor("#0D1B4B"));
-                selectedFromDate = api;
-            } else {
-                tvToDate.setText(display);
-                tvToDate.setTextColor(Color.parseColor("#0D1B4B"));
-                selectedToDate = api;
-            }
+            if (isFrom) { tvFromDate.setText(display); tvFromDate.setTextColor(Color.parseColor("#0D1B4B")); selectedFromDate = api; }
+            else        { tvToDate.setText(display);   tvToDate.setTextColor(Color.parseColor("#0D1B4B"));   selectedToDate   = api; }
         }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show();
     }
 
-    // ══════════════════════════════════════════════════════════════
-    //  Fetch posts — same getallposts.jsp endpoint, params appended
-    // ══════════════════════════════════════════════════════════════
-    private void fetchPosts(String fromDate, String toDate, String empCode) {
-        progressBar.setVisibility(View.VISIBLE);
-        tvError.setVisibility(View.GONE);
-        tvResultCount.setText("");
-        containerResults.removeAllViews();
+    private void fetchData() {
+        // FIX: Snapshot mode and token atomically before any async work
+        final String modeSnap  = currentMode;
+        final int myToken      = fetchToken.incrementAndGet();
+        final String dateKey   = "visits".equals(modeSnap) ? "time" : "date";
+        final String api       = "visits".equals(modeSnap) ? ALL_POSTS_API : ALL_EXPENSES_API;
+        final String empCode   = etEmpCode.getText().toString().trim();
+        final String fromDate  = selectedFromDate;
+        final String toDate    = selectedToDate;
 
-        // Always fetch ALL posts — server ignores filter params,
-        // so we filter client-side after receiving the full list
-        Log.d(TAG, "Fetching all posts, will filter client-side."
-                + " empCode=" + empCode + " from=" + fromDate + " to=" + toDate);
+        showLoading();
 
         executor.execute(() -> {
+            // FIX: Check token before making network call
+            if (fetchToken.get() != myToken) return;
+
             try {
-                String json = httpGet(ALL_POSTS_API);
-                runOnUiThread(() -> renderResults(json, fromDate, toDate, empCode));
+                String json = httpGet(api);
+
+                // FIX: Check token after network returns
+                if (fetchToken.get() != myToken) return;
+
+                runOnUiThread(() -> {
+                    // FIX: Final check before touching UI
+                    if (fetchToken.get() != myToken) return;
+
+                    hideSwipeRefresh();
+
+                    // FIX: Only render if mode still matches what we fetched
+                    if (modeSnap.equals(currentMode)) {
+                        renderResults(json, fromDate, toDate,
+                                empCode.isEmpty() ? null : empCode,
+                                dateKey, "visits".equals(modeSnap));
+                    }
+                });
             } catch (Exception e) {
-                Log.e(TAG, "Fetch error: " + e.getMessage());
-                runOnUiThread(() -> showError("Network error: " + e.getMessage()));
+                Log.e(TAG, "fetchData error", e);
+                if (fetchToken.get() != myToken) return;
+                runOnUiThread(() -> {
+                    if (fetchToken.get() != myToken) return;
+                    hideSwipeRefresh();
+                    // FIX: Mark as failed so onResume can retry
+                    dataLoadedSuccessfully = false;
+                    showError("Network error. Please try again.");
+                });
             }
         });
     }
 
-    private void renderResults(String json, String fromDate, String toDate, String empCode) {
-        progressBar.setVisibility(View.GONE);
+    private void showLoading() {
+        if (swipeRefreshLayout != null)
+            swipeRefreshLayout.post(() -> swipeRefreshLayout.setRefreshing(true));
+        if (tvError != null) tvError.setVisibility(View.GONE);
+        if (tvResultCount != null) tvResultCount.setText("");
+        if (containerResults != null) containerResults.removeAllViews();
+    }
 
-        if (json == null || json.trim().isEmpty()) {
-            showError("No posts found.");
+    private void hideSwipeRefresh() {
+        if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
+    }
+
+    private void renderResults(String json, String fromDate, String toDate,
+                               String empCode, String dateKey, boolean isVisit) {
+        if (json == null || json.trim().isEmpty() || json.trim().equals("[]")) {
+            if (containerResults != null) containerResults.removeAllViews();
+            showError("No data found.");
+            if (tvResultCount != null) tvResultCount.setText("0 results");
+            // FIX: Empty is a valid loaded state
+            dataLoadedSuccessfully = true;
             return;
         }
 
         try {
-            JSONArray array;
-            String trimmed = json.trim();
-            if (trimmed.startsWith("[")) {
-                array = new JSONArray(trimmed);
-            } else {
-                JSONObject wrapper = new JSONObject(trimmed);
-                String key = wrapper.keys().next();
-                array = wrapper.getJSONArray(key);
+            JSONArray array = parseToArray(json);
+            if (array == null || array.length() == 0) {
+                if (containerResults != null) containerResults.removeAllViews();
+                showError("No records found.");
+                if (tvResultCount != null) tvResultCount.setText("0 results");
+                dataLoadedSuccessfully = true;
+                return;
             }
 
-            // ── Client-side filtering ─────────────────────────────
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
             Date dFrom = null, dTo = null;
             try {
                 if (fromDate != null && !fromDate.isEmpty()) dFrom = sdf.parse(fromDate);
                 if (toDate   != null && !toDate.isEmpty())   dTo   = sdf.parse(toDate);
-                // Make dTo inclusive — extend to end of that day
                 if (dTo != null) dTo = new Date(dTo.getTime() + 24 * 60 * 60 * 1000 - 1);
             } catch (ParseException ignored) {}
 
-            // Normalise empCode filter — pad to 5 digits if numeric
             String empFilter = "";
             if (empCode != null && !empCode.trim().isEmpty()) {
-                try {
-                    empFilter = String.format("%05d",
-                            Integer.parseInt(empCode.trim().replaceAll("\\D", "")));
-                } catch (NumberFormatException e) {
-                    empFilter = empCode.trim().toLowerCase();
-                }
+                try { empFilter = String.format(Locale.getDefault(), "%05d", Integer.parseInt(empCode.trim().replaceAll("\\D", ""))); }
+                catch (NumberFormatException e) { empFilter = empCode.trim().toLowerCase(); }
             }
 
             List<JSONObject> filtered = new ArrayList<>();
             for (int i = 0; i < array.length(); i++) {
-                JSONObject post = array.getJSONObject(i);
-
-                // ── Empcode filter ────────────────────────────────
+                JSONObject obj = array.getJSONObject(i);
+                if (!isVisit && obj.optInt("is_deleted", 0) == 1) continue;
                 if (!empFilter.isEmpty()) {
-                    String postCode = post.optString("empcode", "").trim();
-                    try {
-                        postCode = String.format("%05d",
-                                Integer.parseInt(postCode.replaceAll("\\D", "")));
-                    } catch (NumberFormatException e) {
-                        postCode = postCode.toLowerCase();
-                    }
+                    String postCode = obj.optString("empcode", "").trim();
+                    try { postCode = String.format(Locale.getDefault(), "%05d", Integer.parseInt(postCode.replaceAll("\\D", ""))); }
+                    catch (NumberFormatException e) { postCode = postCode.toLowerCase(); }
                     if (!postCode.equals(empFilter)) continue;
                 }
 
-                // ── Date range filter ─────────────────────────────
                 if (dFrom != null || dTo != null) {
-                    String timeStr = post.optString("time", "").trim();
-                    // Extract just the date portion (first 10 chars: yyyy-MM-dd)
-                    if (timeStr.length() >= 10) timeStr = timeStr.substring(0, 10);
+                    String ts = obj.optString(dateKey, obj.optString("created_at", "")).trim();
+                    if (ts.length() < 10) continue;
                     try {
-                        Date postDate = sdf.parse(timeStr);
-                        if (postDate == null) continue;
-                        if (dFrom != null && postDate.before(dFrom)) continue;
-                        if (dTo   != null && postDate.after(dTo))    continue;
-                    } catch (ParseException e) {
-                        continue; // skip records with unparseable dates when filtering
-                    }
+                        Date pd = sdf.parse(ts.substring(0, 10));
+                        if (pd == null) continue;
+                        if (dFrom != null && pd.before(dFrom)) continue;
+                        if (dTo   != null && pd.after(dTo))    continue;
+                    } catch (ParseException e) { continue; }
                 }
-
-                filtered.add(post);
+                filtered.add(obj);
             }
 
             if (filtered.isEmpty()) {
-                showError("No posts match your search.");
-                tvResultCount.setText("0 results");
+                if (containerResults != null) containerResults.removeAllViews();
+                showError("No records match your search.");
+                if (tvResultCount != null) tvResultCount.setText("0 results");
+                dataLoadedSuccessfully = true;
                 return;
             }
 
-            tvResultCount.setText("Showing " + filtered.size() + " result"
-                    + (filtered.size() == 1 ? "" : "s"));
+            Collections.sort(filtered, (a, b) -> {
+                String da = a.optString(dateKey, a.optString("created_at", "")).trim();
+                String db = b.optString(dateKey, b.optString("created_at", "")).trim();
+                return db.compareTo(da);
+            });
+
+            if (containerResults != null) containerResults.removeAllViews();
+            if (tvResultCount != null)
+                tvResultCount.setText(String.format(Locale.getDefault(), "Showing %d result%s", filtered.size(), (filtered.size() == 1 ? "" : "s")));
 
             LayoutInflater inflater = LayoutInflater.from(this);
-            for (JSONObject post : filtered) {
-                String postId  = post.optString("id", post.optString("visit_id", post.optString("gps_id", "")));
-                String empcode = post.optString("empcode",     "");
-                String desc    = post.optString("description", "");
-                String lat     = post.optString("latitude",    "");
-                String lng     = post.optString("longitude",   "");
-                String time    = post.optString("time",        "");
-                String status  = post.optString("status",      "");
-
-                List<String> imgs = new ArrayList<>();
-                JSONArray imgArr  = post.optJSONArray("images");
-                if (imgArr != null) {
-                    for (int j = 0; j < imgArr.length(); j++)
-                        imgs.add(imgArr.getString(j));
-                }
-
-                View card = inflater.inflate(R.layout.item_post_card, containerResults, false);
-                bindCard(card, postId, empcode, desc, lat, lng, time, status, imgs);
-                containerResults.addView(card);
+            for (JSONObject obj : filtered) {
+                View card = inflater.inflate(R.layout.item_admin_card, containerResults, false);
+                bindAdminCard(card, obj, isVisit);
+                if (containerResults != null) containerResults.addView(card);
             }
 
+            // FIX: Mark as successfully loaded
+            dataLoadedSuccessfully = true;
+
         } catch (Exception e) {
-            Log.e(TAG, "Parse error: " + e.getMessage());
-            showError("Error reading response.");
+            Log.e(TAG, "renderResults", e);
+            dataLoadedSuccessfully = false;
+            showError("Error processing results.");
         }
     }
 
-    // ── Bind one card — identical logic to AdminActivity ──────────
-    private void bindCard(View card, String postId, String empcode, String description,
-                          String latitude, String longitude, String time,
-                          String status, List<String> imageUrls) {
+    private void bindAdminCard(View card, JSONObject obj, boolean isVisit) {
+        String empcode = obj.optString("empcode", "");
+        String empName = extractEmpName(obj);
+        String trip    = extractTripName(obj);
+        String desc    = obj.optString("description", obj.optString("textbox", ""));
+        String lat     = obj.optString("latitude", "");
+        String lng     = obj.optString("longitude", "");
+        String time    = isVisit ? obj.optString("time",  obj.optString("created_at", ""))
+                : obj.optString("date",  obj.optString("created_at", ""));
+        String status  = obj.optString("status", "pending");
+        String amount  = obj.optString("amount", "0");
 
-        ImageView    ivPhoto    = card.findViewById(R.id.ivCardFacultyPhoto);
-        TextView     tvName     = card.findViewById(R.id.tvCardFacultyName);
-        TextView     tvDept     = card.findViewById(R.id.tvCardDept);
-        TextView     tvLocation = card.findViewById(R.id.tvCardLocation);
-        TextView     tvDesc     = card.findViewById(R.id.tvCardDescription);
-        TextView     tvTime     = card.findViewById(R.id.tvCardTime);
-        TextView     tvStatus   = card.findViewById(R.id.tvCardStatus);
-        ViewPager2   pager      = card.findViewById(R.id.viewPagerImages);
-        LinearLayout dots       = card.findViewById(R.id.layoutDots);
-        CardView     btnMap     = card.findViewById(R.id.btnViewMap);
-        CardView     btnApprove = card.findViewById(R.id.btnApprove);
-        TextView     tvApprove  = card.findViewById(R.id.tvApproveLabel);
+        List<String> imgs = new ArrayList<>();
+        JSONArray imgArr  = obj.optJSONArray("images");
+        if (imgArr != null) for (int j = 0; j < imgArr.length(); j++) imgs.add(imgArr.optString(j, ""));
 
-        // Pad empcode — UNCHANGED
+        ImageView ivPhoto    = card.findViewById(R.id.ivFacultyPhoto);
+        TextView  tvName     = card.findViewById(R.id.tvFacultyName);
+        TextView  tvDept     = card.findViewById(R.id.tvFacultyDept);
+        TextView  tvStatus   = card.findViewById(R.id.tvStatus);
+        TextView  tvTrip     = card.findViewById(R.id.tvTripName);
+        TextView  tvCardTime = card.findViewById(R.id.tvTime);
+        FrameLayout layoutPreview = card.findViewById(R.id.layoutImagePreview);
+        ImageView   ivPreview     = card.findViewById(R.id.ivPreview);
+        TextView    tvImgCount    = card.findViewById(R.id.tvImageCount);
+        CardView  btnMap     = card.findViewById(R.id.btnViewMap);
+        CardView  btnApprove = card.findViewById(R.id.btnApprove);
+        TextView  tvApprove  = card.findViewById(R.id.tvApproveLabel);
+        ImageView ivDelete   = card.findViewById(R.id.ivDelete);
+
         String paddedCode = empcode;
-        try {
-            paddedCode = String.format("%05d", Integer.parseInt(empcode.replaceAll("\\D", "")));
-        } catch (NumberFormatException ignored) {}
+        try { paddedCode = String.format(Locale.getDefault(), "%05d", Integer.parseInt(empcode.replaceAll("\\D", ""))); }
+        catch (Exception ignored) {}
 
-        tvName.setText(paddedCode);
-        tvDept.setText("Emp ID: FAC-" + paddedCode);
-
-        // Status badge
-        if (!status.isEmpty()) {
-            tvStatus.setVisibility(View.VISIBLE);
-            tvStatus.setText(status.toUpperCase());
-            tvStatus.getBackground().setTint(Color.parseColor(getStatusColor(status)));
+        if (!empName.isEmpty()) {
+            tvName.setText(empName);
+            tvDept.setText(String.format(Locale.getDefault(), "Emp ID: FAC-%s", paddedCode));
+        } else {
+            tvName.setText(String.format(Locale.getDefault(), "Employee: %s", paddedCode));
+            tvDept.setText(String.format(Locale.getDefault(), "Emp ID: FAC-%s", paddedCode));
         }
 
-        // Faculty photo — UNCHANGED
+        if (status.isEmpty() || status.equalsIgnoreCase("null")) status = "PENDING";
+        tvStatus.setText(status.toUpperCase(Locale.getDefault()));
+        tvStatus.getBackground().setTint(Color.parseColor(getStatusColor(status)));
+
         String photoUrl = PHOTO_BASE_IP + "/counselling_jspapi/StaffPhotos/" + paddedCode + ".JPG";
         Glide.with(this)
                 .load(photoUrl)
@@ -346,247 +421,221 @@ public class AdminSearchActivity extends BaseActivity {
                         .error(android.R.drawable.ic_menu_myplaces))
                 .into(ivPhoto);
 
-        // Images ViewPager — UNCHANGED
-        if (!imageUrls.isEmpty()) {
-            pager.setVisibility(View.VISIBLE);
-            pager.setAdapter(new ImagePagerAdapter(imageUrls));
-            if (imageUrls.size() > 1) {
-                dots.setVisibility(View.VISIBLE);
-                setupDots(dots, imageUrls.size(), 0);
-                pager.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
-                    @Override public void onPageSelected(int pos) {
-                        setupDots(dots, imageUrls.size(), pos);
-                    }
-                });
-            }
+        String tripDisp = !trip.isEmpty() ? trip
+                : (isVisit ? "(No Trip Name)" : String.format(Locale.getDefault(), "Expense Claim: ₹%s", amount));
+        tvTrip.setText(tripDisp);
+        tvCardTime.setText(formatTime(time));
+
+        if (!imgs.isEmpty()) {
+            layoutPreview.setVisibility(View.VISIBLE);
+            String firstImg = imgs.get(0);
+            if (!firstImg.startsWith("http")) firstImg = SERVER_BASE + (firstImg.startsWith("/") ? "" : "/") + firstImg;
+            Glide.with(this).load(firstImg).centerCrop().into(ivPreview);
+            tvImgCount.setVisibility(imgs.size() > 1 ? View.VISIBLE : View.GONE);
+            if (imgs.size() > 1) tvImgCount.setText(String.format(Locale.getDefault(), "+%d photos", imgs.size() - 1));
         } else {
-            pager.setVisibility(View.GONE);
-            dots.setVisibility(View.GONE);
+            layoutPreview.setVisibility(View.GONE);
         }
 
-        tvDesc.setText(description.isEmpty() ? "(No description)" : description);
-        tvTime.setText(formatTime(time));
-        tvLocation.setText(latitude + ", " + longitude);
-        reverseGeocode(latitude, longitude, tvLocation);
+        final String fTrip   = tripDisp;
+        final String fDesc   = desc;
+        final String fTime   = formatTime(time);
+        final String fStatus = status;
+        final String fAmt    = amount;
+        final ArrayList<String> fUrls = new ArrayList<>(imgs);
 
-        // Map button — UNCHANGED
-        btnMap.setOnClickListener(v -> {
-            try {
-                Intent mapIntent = new Intent(Intent.ACTION_VIEW,
-                        Uri.parse("geo:" + latitude + "," + longitude
-                                + "?q=" + latitude + "," + longitude));
-                mapIntent.setPackage("com.google.android.apps.maps");
-                if (mapIntent.resolveActivity(getPackageManager()) != null) {
-                    startActivity(mapIntent);
-                } else {
-                    startActivity(new Intent(Intent.ACTION_VIEW,
-                            Uri.parse("https://maps.google.com/?q=" + latitude + "," + longitude)));
-                }
-            } catch (Exception e) {
-                Toast.makeText(this, "Cannot open map.", Toast.LENGTH_SHORT).show();
-            }
+        card.setOnClickListener(v -> {
+            Intent intent = new Intent(this, AdminDetailActivity.class);
+            intent.putExtra("type", isVisit ? "history" : "expense");
+            intent.putExtra("tripName", fTrip);
+            intent.putExtra("location", isVisit ? (String.format(Locale.getDefault(), "%s, %s", lat, lng)) : "Expense Submission");
+            intent.putExtra("dateTime", fTime);
+            intent.putExtra("status", fStatus);
+            intent.putExtra("description", fDesc);
+            intent.putExtra("amount", fAmt);
+            intent.putStringArrayListExtra("images", fUrls);
+            startActivity(intent);
         });
 
-        // Approve button — calls server
-        final String finalCode   = paddedCode;
-        final String finalPostId = postId;
-        btnApprove.setOnClickListener(v ->
-                new AlertDialog.Builder(this)
-                        .setTitle("Approve Visit")
-                        .setMessage("Approve visit by employee " + finalCode + "?")
-                        .setPositiveButton("Approve", (d, w) -> callApproveApi(finalPostId, finalCode, btnApprove, tvApprove))
-                        .setNegativeButton("Cancel", null)
-                        .show()
-        );
+        if (isVisit && !lat.isEmpty()) {
+            btnMap.setVisibility(View.VISIBLE);
+            btnMap.setOnClickListener(v -> {
+                try {
+                    Intent m = new Intent(Intent.ACTION_VIEW, Uri.parse(String.format(Locale.getDefault(), "geo:%s,%s?q=%s,%s", lat, lng, lat, lng)));
+                    m.setPackage("com.google.android.apps.maps");
+                    if (m.resolveActivity(getPackageManager()) != null) startActivity(m);
+                    else startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(String.format(Locale.getDefault(), "https://maps.google.com/?q=%s,%s", lat, lng))));
+                } catch (Exception e) { Toast.makeText(this, "Cannot open map.", Toast.LENGTH_SHORT).show(); }
+            });
+        } else {
+            btnMap.setVisibility(View.GONE);
+        }
+
+        if (fStatus.equalsIgnoreCase("approved") || fStatus.equalsIgnoreCase("completed")) {
+            btnApprove.setCardBackgroundColor(Color.parseColor("#34A853"));
+            tvApprove.setText("Approved ✓");
+            btnApprove.setEnabled(false);
+        } else {
+            btnApprove.setEnabled(true);
+            final String fCode = empcode;
+            final String fId = obj.optString("id", obj.optString("visit_id", obj.optString("gps_id", "")));
+            btnApprove.setOnClickListener(v ->
+                    new AlertDialog.Builder(this)
+                            .setTitle("Approve " + (isVisit ? "Visit" : "Expense"))
+                            .setMessage(String.format(Locale.getDefault(), "Approve this request by %s?", fCode))
+                            .setPositiveButton("Approve", (d, w) -> {
+                                if (isVisit) callApproveApi(fId, fCode, btnApprove, tvApprove);
+                                else         callApproveExpenseApi(fId, fCode, btnApprove, tvApprove);
+                            })
+                            .setNegativeButton("Cancel", null)
+                            .show());
+        }
+
+        if (ivDelete != null) {
+            final String fCode = empcode;
+            final String fRawTime = time;
+            final String fId = obj.optString("id", obj.optString("visit_id", obj.optString("gps_id", "")));
+            ivDelete.setOnClickListener(v ->
+                    new AlertDialog.Builder(this)
+                            .setTitle("Delete " + (isVisit ? "Visit" : "Expense"))
+                            .setMessage("Are you sure you want to delete this record?")
+                            .setPositiveButton("Delete", (d, w) -> {
+                                if (isVisit) callDeletePostApi(fCode, fRawTime, card);
+                                else         callDeleteExpenseApi(fId, card);
+                            })
+                            .setNegativeButton("Cancel", null)
+                            .show());
+        }
     }
 
-    private void callApproveApi(String postId, String empcode, CardView btnApprove, TextView tvApprove) {
-        btnApprove.setEnabled(false);
-        tvApprove.setText("Approving...");
+    private void callApproveApi(String id, String empcode, CardView btn, TextView tv) {
+        btn.setEnabled(false); tv.setText("...");
         executor.execute(() -> {
-            HttpURLConnection conn = null;
             try {
-                String urlStr = SERVER_BASE + "/jspapi/gps/approvepost.jsp"
-                        + "?id=" + postId + "&empcode=" + empcode + "&status=approved";
-                java.net.URL url = new java.net.URL(urlStr);
-                conn = (HttpURLConnection) url.openConnection();
-                conn.setRequestMethod("GET");
-                conn.setConnectTimeout(8000);
-                conn.setReadTimeout(8000);
-                int code = conn.getResponseCode();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(
-                        code == 200 ? conn.getInputStream() : conn.getErrorStream()));
-                StringBuilder sb = new StringBuilder();
-                String line;
-                while ((line = reader.readLine()) != null) sb.append(line);
-                reader.close();
-                String body = sb.toString().trim();
-                boolean success = false;
-                try { success = new JSONObject(body).optBoolean("success", false); }
-                catch (Exception ignored) { success = body.contains("true"); }
-                final boolean ok = success;
+                String res = httpGet(SERVER_BASE + "/jspapi/gps/approvepost.jsp?id=" + id + "&empcode=" + empcode + "&status=approved");
                 runOnUiThread(() -> {
-                    if (ok) {
-                        btnApprove.setCardBackgroundColor(Color.parseColor("#34A853"));
-                        tvApprove.setText("Approved ✓");
+                    if (res != null && (res.contains("true") || res.contains("success"))) {
+                        btn.setCardBackgroundColor(Color.parseColor("#34A853")); tv.setText("Approved ✓");
                         Toast.makeText(this, "Visit approved!", Toast.LENGTH_SHORT).show();
-                    } else {
-                        btnApprove.setEnabled(true);
-                        tvApprove.setText("Approve");
-                        Toast.makeText(this, "Approval failed. Check server.", Toast.LENGTH_LONG).show();
+                    } else { btn.setEnabled(true); tv.setText("Approve"); }
+                });
+            } catch (Exception e) { runOnUiThread(() -> { btn.setEnabled(true); tv.setText("Approve"); }); }
+        });
+    }
+
+    private void callApproveExpenseApi(String id, String empcode, CardView btn, TextView tv) {
+        btn.setEnabled(false); tv.setText("...");
+        executor.execute(() -> {
+            try {
+                String res = httpGet(SERVER_BASE + "/jspapi/gps/approveexpense.jsp?id=" + id + "&empcode=" + empcode + "&status=approved");
+                runOnUiThread(() -> {
+                    if (res != null && (res.contains("true") || res.contains("success"))) {
+                        btn.setCardBackgroundColor(Color.parseColor("#34A853")); tv.setText("Approved ✓");
+                        Toast.makeText(this, "Expense approved!", Toast.LENGTH_SHORT).show();
+                    } else { btn.setEnabled(true); tv.setText("Approve"); }
+                });
+            } catch (Exception e) { runOnUiThread(() -> { btn.setEnabled(true); tv.setText("Approve"); }); }
+        });
+    }
+
+    private void callDeletePostApi(String empcode, String time, View card) {
+        executor.execute(() -> {
+            try {
+                String res = httpGet(SERVER_BASE + "/jspapi/gps/deletepost.jsp?empcode=" + empcode
+                        + "&time=" + URLEncoder.encode(time, "UTF-8") + "&admin_id=" + adminId);
+                runOnUiThread(() -> {
+                    if (res != null && (res.contains("true") || res.contains("deleted") || res.contains("success"))) {
+                        if (containerResults != null) containerResults.removeView(card);
+                        Toast.makeText(this, "Deleted successfully.", Toast.LENGTH_SHORT).show();
                     }
                 });
-            } catch (Exception e) {
-                runOnUiThread(() -> {
-                    btnApprove.setEnabled(true);
-                    tvApprove.setText("Approve");
-                    Toast.makeText(this, "Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                });
-            } finally {
-                if (conn != null) conn.disconnect();
-            }
+            } catch (Exception e) { Log.e(TAG, "Delete post error", e); }
         });
+    }
+
+    private void callDeleteExpenseApi(String id, View card) {
+        executor.execute(() -> {
+            try {
+                String res = httpGet(SERVER_BASE + "/jspapi/gps/deleteexpense.jsp?id=" + id + "&admin_id=" + adminId);
+                runOnUiThread(() -> {
+                    if (res != null && (res.contains("true") || res.contains("deleted") || res.contains("success"))) {
+                        if (containerResults != null) containerResults.removeView(card);
+                        Toast.makeText(this, "Deleted successfully.", Toast.LENGTH_SHORT).show();
+                    }
+                });
+            } catch (Exception e) { Log.e(TAG, "Delete expense error", e); }
+        });
+    }
+
+    private String extractTripName(JSONObject obj) {
+        for (String k : new String[]{"trip_name","tripname","trip","TripName","TRIP_NAME"}) {
+            String v = obj.optString(k, "").trim();
+            if (!v.isEmpty() && !v.equalsIgnoreCase("null")) return v;
+        }
+        return "";
+    }
+
+    private String extractEmpName(JSONObject obj) {
+        for (String k : new String[]{"name","empname","emp_name","employee_name","EmpName"}) {
+            String v = obj.optString(k, "").trim();
+            if (!v.isEmpty() && !v.equalsIgnoreCase("null")) return v;
+        }
+        return "";
+    }
+
+    private JSONArray parseToArray(String json) {
+        try {
+            String t = json.trim();
+            if (t.startsWith("[")) return new JSONArray(t);
+            JSONObject w = new JSONObject(t);
+            if (w.has("success") && !w.optBoolean("success", true)) return null;
+            for (String k : new String[]{"data","history","records","expenses","posts"})
+                if (w.has(k)) return w.getJSONArray(k);
+            Iterator<String> it = w.keys();
+            while (it.hasNext()) { Object v = w.get(it.next()); if (v instanceof JSONArray) return (JSONArray) v; }
+        } catch (Exception e) { Log.e(TAG, "parseToArray", e); }
+        return new JSONArray();
     }
 
     private String getStatusColor(String status) {
+        if (status == null) return "#8A93B2";
         String s = status.toLowerCase().trim();
         if (s.contains("approved") || s.contains("completed")) return "#34A853";
         if (s.contains("pending"))  return "#FB8C00";
-        if (s.contains("review"))   return "#1A73E8";
         if (s.contains("rejected")) return "#E53935";
         return "#8A93B2";
     }
 
-    // ── buildImageUrl — UNCHANGED ──────────────────────────────────
-    private String buildImageUrl(String path) {
-        if (path == null || path.isEmpty()) return "";
-        String normalized = path.replace("\\", "/");
-        if (normalized.contains("localhost") || normalized.contains("127.0.0.1")
-                || normalized.contains("192.168.")) {
-            int slashIdx = normalized.indexOf("/", 8);
-            if (slashIdx != -1) normalized = normalized.substring(slashIdx);
-        }
-        if (normalized.startsWith("http")) return normalized;
-        String clean = normalized.startsWith("/") ? normalized : "/" + normalized;
-        return SERVER_BASE + clean;
-    }
-
-    private void setupDots(LinearLayout layout, int count, int active) {
-        layout.removeAllViews();
-        for (int i = 0; i < count; i++) {
-            View dot = new View(this);
-            int size = dpToPx(i == active ? 8 : 6);
-            LinearLayout.LayoutParams p = new LinearLayout.LayoutParams(size, size);
-            p.setMargins(4, 0, 4, 0);
-            dot.setLayoutParams(p);
-            dot.setBackground(getDrawable(android.R.drawable.presence_online));
-            dot.getBackground().setTint(i == active ? 0xFF1A73E8 : 0xFFCCCCCC);
-            layout.addView(dot);
-        }
-    }
-
-    private void reverseGeocode(String lat, String lng, TextView target) {
-        executor.execute(() -> {
-            try {
-                double dLat = Double.parseDouble(lat);
-                double dLng = Double.parseDouble(lng);
-                Geocoder geo = new Geocoder(this, Locale.getDefault());
-                List<Address> list = geo.getFromLocation(dLat, dLng, 1);
-                if (list != null && !list.isEmpty()) {
-                    Address a = list.get(0);
-                    StringBuilder sb = new StringBuilder();
-                    if (a.getThoroughfare() != null) sb.append(a.getThoroughfare()).append(" • ");
-                    if (a.getLocality()     != null) sb.append(a.getLocality());
-                    String result = sb.toString().replaceAll(" • $", "").trim();
-                    if (!result.isEmpty()) runOnUiThread(() -> target.setText(result));
-                }
-            } catch (Exception ignored) {}
-        });
-    }
-
-    // ── formatTime — UNCHANGED ─────────────────────────────────────
     private String formatTime(String raw) {
         if (raw == null || raw.isEmpty()) return "";
         try {
-            SimpleDateFormat in  = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.S", Locale.getDefault());
-            SimpleDateFormat out = new SimpleDateFormat("MMM dd, yyyy • hh:mm a",  Locale.getDefault());
-            Date d = in.parse(raw);
-            return d != null ? out.format(d) : raw;
-        } catch (ParseException e) { return raw; }
+            Date d = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).parse(raw);
+            return d != null ? new SimpleDateFormat("MMM dd, yyyy • hh:mm a", Locale.getDefault()).format(d) : raw;
+        } catch (Exception e) { return raw; }
     }
 
-    // ── httpGet — UNCHANGED ────────────────────────────────────────
-    private String httpGet(String urlStr) throws IOException {
-        HttpURLConnection conn = null;
+    private String httpGet(String u) throws IOException {
+        HttpURLConnection c = (HttpURLConnection) new URL(u).openConnection();
+        c.setConnectTimeout(15000); c.setReadTimeout(15000);
         try {
-            URL url = new URL(urlStr);
-            conn = (HttpURLConnection) url.openConnection();
-            conn.setRequestMethod("GET");
-            conn.setConnectTimeout(15000);
-            conn.setReadTimeout(15000);
-            int code = conn.getResponseCode();
+            c.setRequestMethod("GET");
+            int code = c.getResponseCode();
             if (code == HttpURLConnection.HTTP_OK) {
-                BufferedReader br = new BufferedReader(
-                        new InputStreamReader(conn.getInputStream()));
-                StringBuilder sb = new StringBuilder();
-                String line;
+                BufferedReader br = new BufferedReader(new InputStreamReader(c.getInputStream()));
+                StringBuilder sb = new StringBuilder(); String line;
                 while ((line = br.readLine()) != null) sb.append(line);
-                br.close();
-                return sb.toString().trim();
+                String response = sb.toString().trim();
+                return response.isEmpty() ? "[]" : response;
+            } else if (code == HttpURLConnection.HTTP_NO_CONTENT) {
+                return "[]";
             }
-            return null;
-        } finally {
-            if (conn != null) conn.disconnect();
-        }
+            return "[]";
+        } finally { c.disconnect(); }
     }
 
     private void showError(String msg) {
-        progressBar.setVisibility(View.GONE);
-        tvError.setVisibility(View.VISIBLE);
-        tvError.setText(msg);
+        if (tvError != null) { tvError.setVisibility(View.VISIBLE); tvError.setText(msg); }
     }
 
-    private int dpToPx(int dp) {
-        return Math.round(dp * getResources().getDisplayMetrics().density);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        executor.shutdownNow();
-    }
-
-    // ── Image pager adapter — UNCHANGED ───────────────────────────
-    private class ImagePagerAdapter extends RecyclerView.Adapter<ImagePagerAdapter.VH> {
-        private final List<String> urls;
-        ImagePagerAdapter(List<String> urls) { this.urls = urls; }
-
-        @NonNull @Override
-        public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            ImageView iv = new ImageView(parent.getContext());
-            iv.setLayoutParams(new ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT));
-            iv.setScaleType(ImageView.ScaleType.CENTER_CROP);
-            return new VH(iv);
-        }
-
-        @Override
-        public void onBindViewHolder(@NonNull VH h, int pos) {
-            Glide.with(AdminSearchActivity.this)
-                    .load(buildImageUrl(urls.get(pos)))
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .placeholder(android.R.drawable.ic_menu_gallery)
-                    .error(android.R.drawable.ic_menu_report_image)
-                    .centerCrop()
-                    .into(h.iv);
-        }
-
-        @Override public int getItemCount() { return urls.size(); }
-
-        class VH extends RecyclerView.ViewHolder {
-            ImageView iv;
-            VH(ImageView iv) { super(iv); this.iv = iv; }
-        }
-    }
+    @Override protected void onDestroy() { super.onDestroy(); executor.shutdownNow(); }
 }

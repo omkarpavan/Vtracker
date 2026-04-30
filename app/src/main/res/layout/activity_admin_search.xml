@@ -8,49 +8,43 @@
     android:background="#F5F7FA">
 
     <!-- ── TOP HEADER ─────────────────────────────────────────── -->
+
+    <!-- ── SCROLLABLE BODY ────────────────────────────────────── -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
+        android:background="#1A73E8"
         android:gravity="center_vertical"
+        android:orientation="horizontal"
         android:paddingStart="8dp"
+        android:paddingTop="20dp"
         android:paddingEnd="16dp"
-        android:paddingTop="40dp"
-        android:paddingBottom="14dp"
-        android:background="#1A73E8">
+        android:paddingBottom="14dp">
 
         <ImageView
             android:id="@+id/ivBack"
             android:layout_width="40dp"
             android:layout_height="40dp"
-            android:padding="8dp"
-            android:src="@drawable/ic_arrow_back"
-            app:tint="#FFFFFF"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
-            android:background="?attr/selectableItemBackgroundBorderless" />
+            android:padding="8dp"
+            android:src="@drawable/ic_arrow_back"
+            app:tint="#FFFFFF" />
 
         <TextView
-            android:layout_width="322dp"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:fontFamily="sans-serif-medium"
             android:gravity="center"
-            android:text="VTracker"
+            android:text="VTracker Search"
             android:textColor="#FFFFFF"
             android:textSize="18sp"
             android:textStyle="bold" />
 
-<!--        <ImageView-->
-<!--            android:id="@+id/ivNotification"-->
-<!--            android:layout_width="26dp"-->
-<!--            android:layout_height="26dp"-->
-<!--            android:src="@drawable/ic_notifications"-->
-<!--            app:tint="#555555" />-->
-
     </LinearLayout>
 
-    <!-- ── SCROLLABLE BODY ────────────────────────────────────── -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -70,12 +64,70 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Search Faculty Posts"
+                android:text="Search Records"
                 android:textSize="24sp"
                 android:textStyle="bold"
                 android:textColor="#0D1B4B"
                 android:fontFamily="sans-serif-medium"
                 android:layout_marginBottom="18dp" />
+
+            <!-- ── TAB BAR ────────────────────────────────────── -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="18dp"
+                android:background="#FFFFFF"
+                android:elevation="2dp">
+
+                <TextView
+                    android:id="@+id/tabHistory"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Visits"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="#1A73E8"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground" />
+
+                <TextView
+                    android:id="@+id/tabExpenses"
+                    android:layout_width="0dp"
+                    android:layout_height="44dp"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="Expenses"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="#8A93B2"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground" />
+            </LinearLayout>
+
+            <!-- Tab indicator row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="3dp"
+                android:orientation="horizontal"
+                android:layout_marginBottom="18dp">
+                <View
+                    android:id="@+id/indicatorHistory"
+                    android:layout_width="0dp"
+                    android:layout_height="3dp"
+                    android:layout_weight="1"
+                    android:background="#1A73E8" />
+                <View
+                    android:id="@+id/indicatorExpenses"
+                    android:layout_width="0dp"
+                    android:layout_height="3dp"
+                    android:layout_weight="1"
+                    android:background="#E0E0E0" />
+            </LinearLayout>
 
             <!-- ── SEARCH FILTER CARD ─────────────────────────── -->
             <androidx.cardview.widget.CardView
@@ -92,7 +144,6 @@
                     android:orientation="vertical"
                     android:padding="16dp">
 
-                    <!-- From / To Date row -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -100,7 +151,6 @@
                         android:weightSum="2"
                         android:layout_marginBottom="14dp">
 
-                        <!-- From Date -->
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -140,7 +190,6 @@
                             </LinearLayout>
                         </LinearLayout>
 
-                        <!-- To Date -->
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
@@ -182,7 +231,6 @@
 
                     </LinearLayout>
 
-                    <!-- Employee Code field -->
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -220,7 +268,6 @@
                             android:singleLine="true" />
                     </LinearLayout>
 
-                    <!-- Search Posts button -->
                     <androidx.cardview.widget.CardView
                         android:id="@+id/btnSearchPosts"
                         android:layout_width="match_parent"
@@ -245,7 +292,7 @@
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Search Posts"
+                                android:text="Search Records"
                                 android:textSize="14sp"
                                 android:textStyle="bold"
                                 android:textColor="#FFFFFF" />
@@ -255,23 +302,21 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- ── RECENT VISITS label + result count ─────────── -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
                 android:layout_marginBottom="12dp">
-
                 <TextView
+                    android:id="@+id/tvResultsLabel"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="Recent Visits"
+                    android:text="Recent Records"
                     android:textSize="17sp"
                     android:textStyle="bold"
                     android:textColor="#0D1B4B" />
-
                 <TextView
                     android:id="@+id/tvResultCount"
                     android:layout_width="wrap_content"
@@ -279,10 +324,8 @@
                     android:text=""
                     android:textSize="12sp"
                     android:textColor="#8A93B2" />
-
             </LinearLayout>
 
-            <!-- Progress -->
             <ProgressBar
                 android:id="@+id/progressBar"
                 android:layout_width="wrap_content"
@@ -293,7 +336,6 @@
                 android:indeterminateTint="#1A73E8"
                 android:visibility="gone" />
 
-            <!-- Error / empty -->
             <TextView
                 android:id="@+id/tvError"
                 android:layout_width="match_parent"
@@ -304,7 +346,6 @@
                 android:layout_marginTop="16dp"
                 android:visibility="gone" />
 
-            <!-- Search result cards injected here -->
             <LinearLayout
                 android:id="@+id/containerResults"
                 android:layout_width="match_parent"
@@ -314,63 +355,68 @@
         </LinearLayout>
     </ScrollView>
 
-    <!-- ── BOTTOM NAV ──────────────────────────────────────────── -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="68dp"
         android:orientation="horizontal"
-        android:weightSum="4"
+        android:weightSum="5"
         android:background="#FFFFFF"
         android:elevation="16dp">
-
         <LinearLayout android:id="@+id/navDashboard"
             android:layout_width="0dp" android:layout_height="match_parent"
             android:layout_weight="1" android:orientation="vertical" android:gravity="center"
             android:clickable="true" android:focusable="true"
             android:background="?attr/selectableItemBackground">
-            <ImageView android:layout_width="24dp" android:layout_height="24dp"
+            <ImageView android:layout_width="22dp" android:layout_height="22dp"
                 android:src="@drawable/ic_home" app:tint="#AAAAAA" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Dashboard" android:textSize="9sp" android:textColor="#AAAAAA"
+                android:text="Dashboard" android:textSize="8sp" android:textColor="#AAAAAA"
                 android:layout_marginTop="3dp" />
         </LinearLayout>
-
         <LinearLayout android:id="@+id/navSearch"
             android:layout_width="0dp" android:layout_height="match_parent"
             android:layout_weight="1" android:orientation="vertical" android:gravity="center"
             android:clickable="true" android:focusable="true"
             android:background="?attr/selectableItemBackground">
-            <ImageView android:layout_width="24dp" android:layout_height="24dp"
+            <ImageView android:layout_width="22dp" android:layout_height="22dp"
                 android:src="@drawable/ic_visibility" app:tint="#1A73E8" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Search" android:textSize="9sp" android:textColor="#1A73E8"
+                android:text="Search" android:textSize="8sp" android:textColor="#1A73E8"
                 android:textStyle="bold" android:layout_marginTop="3dp" />
         </LinearLayout>
-
+        <LinearLayout android:id="@+id/navAddUsers"
+            android:layout_width="0dp" android:layout_height="match_parent"
+            android:layout_weight="1" android:orientation="vertical" android:gravity="center"
+            android:clickable="true" android:focusable="true"
+            android:background="?attr/selectableItemBackground">
+            <ImageView android:layout_width="22dp" android:layout_height="22dp"
+                android:src="@drawable/ic_person" app:tint="#AAAAAA" />
+            <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="Add Users" android:textSize="8sp" android:textColor="#AAAAAA"
+                android:layout_marginTop="3dp" />
+        </LinearLayout>
         <LinearLayout android:id="@+id/navApprovals"
             android:layout_width="0dp" android:layout_height="match_parent"
             android:layout_weight="1" android:orientation="vertical" android:gravity="center"
             android:clickable="true" android:focusable="true"
             android:background="?attr/selectableItemBackground">
-            <ImageView android:layout_width="24dp" android:layout_height="24dp"
+            <ImageView android:layout_width="22dp" android:layout_height="22dp"
                 android:src="@drawable/ic_check_circle" app:tint="#AAAAAA" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Approvals" android:textSize="9sp" android:textColor="#AAAAAA"
+                android:text="Approvals" android:textSize="8sp" android:textColor="#AAAAAA"
                 android:layout_marginTop="3dp" />
         </LinearLayout>
-
         <LinearLayout android:id="@+id/navProfile"
             android:layout_width="0dp" android:layout_height="match_parent"
             android:layout_weight="1" android:orientation="vertical" android:gravity="center"
             android:clickable="true" android:focusable="true"
             android:background="?attr/selectableItemBackground">
-            <ImageView android:layout_width="24dp" android:layout_height="24dp"
+            <ImageView android:layout_width="22dp" android:layout_height="22dp"
                 android:src="@drawable/ic_person" app:tint="#AAAAAA" />
             <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-                android:text="Profile" android:textSize="9sp" android:textColor="#AAAAAA"
+                android:text="Profile" android:textSize="8sp" android:textColor="#AAAAAA"
                 android:layout_marginTop="3dp" />
         </LinearLayout>
-
     </LinearLayout>
 
 </LinearLayout>

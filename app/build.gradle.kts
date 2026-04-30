@@ -4,14 +4,12 @@ plugins {
 
 android {
     namespace = "com.example.vtracker"
-    compileSdk {
-        version = release(36)
-    }
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.example.vtracker"
         minSdk = 26
-        targetSdk = 36
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -38,6 +36,7 @@ dependencies {
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation(libs.swiperefreshlayout)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     implementation("com.airbnb.android:lottie:6.4.1")
@@ -52,12 +51,11 @@ dependencies {
     // GIF support
     implementation("pl.droidsonroids.gif:android-gif-drawable:1.2.28")
 
-    // FIX 6: Updated Security-Crypto to the stable version
-    implementation("androidx.security:security-crypto:1.0.0")
+    // Security-Crypto
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
-    // FIX 7: Updated Core-KTX to a recent stable version
+    // Core-KTX
     implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.security:security-crypto:1.0.0")
 
     androidTestImplementation(libs.espresso.core)
 }

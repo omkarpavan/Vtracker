@@ -291,8 +291,12 @@ public class ProfileActivity extends BaseActivity {
                 Toast.makeText(this, "Edit profile coming soon",
                         Toast.LENGTH_SHORT).show());
 
-        cardNotifications.setOnClickListener(v ->
-                Toast.makeText(this, "Notifications", Toast.LENGTH_SHORT).show());
+        cardNotifications.setOnClickListener(v -> {
+            Intent intent = new Intent(this, NotificationsActivity.class);
+            intent.putExtra("EMPLOYEE_ID", empCode);
+            intent.putExtra("USER_NAME", tvName.getText().toString());
+            startActivity(intent);
+        });
 
         cardPrivacy.setOnClickListener(v ->
                 Toast.makeText(this, "Privacy & Security", Toast.LENGTH_SHORT).show());

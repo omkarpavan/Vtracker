@@ -51,27 +51,31 @@
             android:name=".FacultyActivity"
             android:exported="false" />
 
-        <!-- ✅ Profile Activity — ADDED -->
+        <!-- ✅ Profile Activity -->
         <activity
             android:name=".ProfileActivity"
             android:exported="false" />
-
-        <!-- ADD this inside your <application> tag in AndroidManifest.xml -->
 
         <activity
             android:name=".NotificationsActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
-        <!-- Add inside <application> in AndroidManifest.xml -->
         <activity
             android:name=".AdminSearchActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
-
         <activity
             android:name=".ApprovalsActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".AddFacultyActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".AdminDetailActivity"
             android:exported="false" />
 
         <!-- Main Activity -->
@@ -86,6 +90,9 @@
             android:exported="false"/>
         <activity
             android:name=".ExpensesActivity"
+            android:exported="false"/>
+        <activity
+            android:name=".HistoryDetailActivity"
             android:exported="false"/>
         <provider
             android:name="androidx.core.content.FileProvider"

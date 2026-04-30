@@ -15,6 +15,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.cardview.widget.CardView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
@@ -60,12 +61,15 @@ public class HistoryActivity extends BaseActivity {
     private TextView     tvTotalApproved, tvTotalPending;
 
     // ── Tab indicators ─────────────────────────────────────────────
-    private TextView     tabHistory, tabExpenses;
-    private View         indicatorHistory, indicatorExpenses;
+    private TextView tabHistory, tabExpenses;
+    private View     indicatorHistory, indicatorExpenses;
 
     // ── Common header ──────────────────────────────────────────────
-    private TextView     tvTitle;
-    private ImageView    btnBack;
+    private TextView  tvTitle;
+    private ImageView btnBack;
+
+    // ── Swipe Refresh ──────────────────────────────────────────────
+    private SwipeRefreshLayout swipeRefreshLayout;
 
     // ── Bottom Nav ────────────────────────────────────────────────
     private LinearLayout navHome, navPost, navHistory, navExpenses, navProfile;
@@ -74,15 +78,11 @@ public class HistoryActivity extends BaseActivity {
     private String employeeId = "";
     private String userName   = "";
 
-    // History date range
-    private String selectedFromDate = null;
-    private String selectedToDate   = null;
-
-    // Expenses date range
+    private String selectedFromDate    = null;
+    private String selectedToDate      = null;
     private String selectedExpFromDate = null;
     private String selectedExpToDate   = null;
 
-    // Which tab is active: "history" or "expenses"
     private String activeTab = "history";
 
     private static final String SERVER_BASE = "http://160.187.169.14";
@@ -107,71 +107,73 @@ public class HistoryActivity extends BaseActivity {
         setContentView(R.layout.activity_history);
         initViews();
         loadEmployeeData();
-        // Load history by default
         fetchHistory(null, null);
     }
 
     // ──────────────────────────────────────────────────────────────
     private void initViews() {
-        // Header
         tvTitle = findViewById(R.id.tvTitle);
         btnBack = findViewById(R.id.btnBack);
 
-        // Tabs
-        tabHistory       = findViewById(R.id.tabHistory);
-        tabExpenses      = findViewById(R.id.tabExpenses);
-        indicatorHistory = findViewById(R.id.indicatorHistory);
-        indicatorExpenses= findViewById(R.id.indicatorExpenses);
+        swipeRefreshLayout = findViewById(R.id.swipeRefreshLayout);
 
-        // History section
-        sectionHistory    = findViewById(R.id.sectionHistory);
-        containerCards    = findViewById(R.id.containerCards);
-        progressBar       = findViewById(R.id.progressBar);
-        tvError           = findViewById(R.id.tvError);
-        tvFromDate        = findViewById(R.id.tvFromDate);
-        tvToDate          = findViewById(R.id.tvToDate);
-        btnSearchVisits   = findViewById(R.id.btnSearchVisits);
+        tabHistory        = findViewById(R.id.tabHistory);
+        tabExpenses       = findViewById(R.id.tabExpenses);
+        indicatorHistory  = findViewById(R.id.indicatorHistory);
+        indicatorExpenses = findViewById(R.id.indicatorExpenses);
 
-        // Expenses section
-        sectionExpenses      = findViewById(R.id.sectionExpenses);
-        containerExpenseCards= findViewById(R.id.containerExpenseCards);
-        progressBarExp       = findViewById(R.id.progressBarExp);
-        tvErrorExp           = findViewById(R.id.tvErrorExp);
-        tvExpFromDate        = findViewById(R.id.tvExpFromDate);
-        tvExpToDate          = findViewById(R.id.tvExpToDate);
-        btnSearchExpenses    = findViewById(R.id.btnSearchExpenses);
-        tvTotalApproved      = findViewById(R.id.tvTotalApproved);
-        tvTotalPending       = findViewById(R.id.tvTotalPending);
+        sectionHistory  = findViewById(R.id.sectionHistory);
+        containerCards  = findViewById(R.id.containerCards);
+        progressBar     = findViewById(R.id.progressBar);
+        tvError         = findViewById(R.id.tvError);
+        tvFromDate      = findViewById(R.id.tvFromDate);
+        tvToDate        = findViewById(R.id.tvToDate);
+        btnSearchVisits = findViewById(R.id.btnSearchVisits);
 
-        // Bottom Nav
+        sectionExpenses       = findViewById(R.id.sectionExpenses);
+        containerExpenseCards = findViewById(R.id.containerExpenseCards);
+        progressBarExp        = findViewById(R.id.progressBarExp);
+        tvErrorExp            = findViewById(R.id.tvErrorExp);
+        tvExpFromDate         = findViewById(R.id.tvExpFromDate);
+        tvExpToDate           = findViewById(R.id.tvExpToDate);
+        btnSearchExpenses     = findViewById(R.id.btnSearchExpenses);
+        tvTotalApproved       = findViewById(R.id.tvTotalApproved);
+        tvTotalPending        = findViewById(R.id.tvTotalPending);
+
         navHome     = findViewById(R.id.navHome);
         navPost     = findViewById(R.id.navPost);
         navHistory  = findViewById(R.id.navHistory);
         navExpenses = findViewById(R.id.navExpenses);
         navProfile  = findViewById(R.id.navProfile);
 
-        // ── Tab click listeners ──────────────────────────────────
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setColorSchemeColors(Color.parseColor("#1A73E8"));
+            swipeRefreshLayout.setOnRefreshListener(() -> {
+                if ("history".equals(activeTab)) {
+                    fetchHistory(selectedFromDate, selectedToDate);
+                } else {
+                    fetchExpenses(selectedExpFromDate, selectedExpToDate);
+                }
+            });
+        }
+
         tabHistory.setOnClickListener(v -> switchTab("history"));
         tabExpenses.setOnClickListener(v -> {
             switchTab("expenses");
-            // Auto-load expenses when tab is first opened
             if (containerExpenseCards.getChildCount() == 0) {
                 fetchExpenses(null, null);
             }
         });
 
-        // ── History section listeners ────────────────────────────
         btnBack.setOnClickListener(v -> finish());
-        tvFromDate.setOnClickListener(v -> showDatePicker(true, false));
-        tvToDate.setOnClickListener(v   -> showDatePicker(false, false));
+        tvFromDate.setOnClickListener(v      -> showDatePicker(true, false));
+        tvToDate.setOnClickListener(v        -> showDatePicker(false, false));
         btnSearchVisits.setOnClickListener(v -> fetchHistory(selectedFromDate, selectedToDate));
 
-        // ── Expenses section listeners ───────────────────────────
-        tvExpFromDate.setOnClickListener(v -> showDatePicker(true, true));
-        tvExpToDate.setOnClickListener(v   -> showDatePicker(false, true));
-        btnSearchExpenses.setOnClickListener(v -> fetchExpenses(selectedExpFromDate, selectedExpToDate));
+        tvExpFromDate.setOnClickListener(v        -> showDatePicker(true, true));
+        tvExpToDate.setOnClickListener(v          -> showDatePicker(false, true));
+        btnSearchExpenses.setOnClickListener(v    -> fetchExpenses(selectedExpFromDate, selectedExpToDate));
 
-        // ── Bottom Nav listeners ─────────────────────────────────
         navHome.setOnClickListener(v -> {
             Intent i = new Intent(this, FacultyActivity.class);
             i.putExtra("EMPLOYEE_ID", employeeId);
@@ -179,23 +181,19 @@ public class HistoryActivity extends BaseActivity {
             i.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(i);
         });
-
         navPost.setOnClickListener(v -> {
             Intent i = new Intent(this, PostVisitActivity.class);
             i.putExtra("EMPLOYEE_ID", employeeId);
             i.putExtra("USER_NAME", userName);
             startActivity(i);
         });
-
         navHistory.setOnClickListener(v -> { /* Already here */ });
-
         navExpenses.setOnClickListener(v -> {
             Intent i = new Intent(this, ExpensesActivity.class);
             i.putExtra("EMPLOYEE_ID", employeeId);
             i.putExtra("USER_NAME", userName);
             startActivity(i);
         });
-
         navProfile.setOnClickListener(v -> {
             Intent i = new Intent(this, ProfileActivity.class);
             i.putExtra("EMPLOYEE_ID", employeeId);
@@ -205,13 +203,11 @@ public class HistoryActivity extends BaseActivity {
     }
 
     // ──────────────────────────────────────────────────────────────
-    /** Switch between "history" and "expenses" tabs */
     private void switchTab(String tab) {
         activeTab = tab;
         if ("history".equals(tab)) {
             sectionHistory.setVisibility(View.VISIBLE);
             sectionExpenses.setVisibility(View.GONE);
-
             tabHistory.setTextColor(Color.parseColor("#1A73E8"));
             tabExpenses.setTextColor(Color.parseColor("#8A93B2"));
             indicatorHistory.setBackgroundColor(Color.parseColor("#1A73E8"));
@@ -219,7 +215,6 @@ public class HistoryActivity extends BaseActivity {
         } else {
             sectionHistory.setVisibility(View.GONE);
             sectionExpenses.setVisibility(View.VISIBLE);
-
             tabHistory.setTextColor(Color.parseColor("#8A93B2"));
             tabExpenses.setTextColor(Color.parseColor("#1A73E8"));
             indicatorHistory.setBackgroundColor(Color.parseColor("#E0E0E0"));
@@ -234,40 +229,22 @@ public class HistoryActivity extends BaseActivity {
         if (employeeId == null || employeeId.isEmpty()) {
             SharedPreferences prefs = getSharedPreferences(LoginActivity.PREF_NAME, MODE_PRIVATE);
             employeeId = prefs.getString(LoginActivity.KEY_EMPLOYEE_ID, "");
-            userName   = prefs.getString(LoginActivity.KEY_USER_NAME,   "");
+            userName   = prefs.getString(LoginActivity.KEY_USER_NAME, "");
         }
     }
 
     // ──────────────────────────────────────────────────────────────
-    /**
-     * @param isFrom  true = "From" picker, false = "To" picker
-     * @param isExp   true = expenses section picker, false = history section picker
-     */
     private void showDatePicker(boolean isFrom, boolean isExp) {
         Calendar cal = Calendar.getInstance();
         new DatePickerDialog(this, (view, year, month, day) -> {
             String display = String.format("%02d-%02d-%04d", day, month + 1, year);
             String api     = String.format("%04d-%02d-%02d", year, month + 1, day);
             if (isExp) {
-                if (isFrom) {
-                    tvExpFromDate.setText(display);
-                    tvExpFromDate.setTextColor(Color.parseColor("#0D1B4B"));
-                    selectedExpFromDate = api;
-                } else {
-                    tvExpToDate.setText(display);
-                    tvExpToDate.setTextColor(Color.parseColor("#0D1B4B"));
-                    selectedExpToDate = api;
-                }
+                if (isFrom) { tvExpFromDate.setText(display); tvExpFromDate.setTextColor(Color.parseColor("#0D1B4B")); selectedExpFromDate = api; }
+                else        { tvExpToDate.setText(display);   tvExpToDate.setTextColor(Color.parseColor("#0D1B4B"));   selectedExpToDate   = api; }
             } else {
-                if (isFrom) {
-                    tvFromDate.setText(display);
-                    tvFromDate.setTextColor(Color.parseColor("#0D1B4B"));
-                    selectedFromDate = api;
-                } else {
-                    tvToDate.setText(display);
-                    tvToDate.setTextColor(Color.parseColor("#0D1B4B"));
-                    selectedToDate = api;
-                }
+                if (isFrom) { tvFromDate.setText(display); tvFromDate.setTextColor(Color.parseColor("#0D1B4B")); selectedFromDate = api; }
+                else        { tvToDate.setText(display);   tvToDate.setTextColor(Color.parseColor("#0D1B4B"));   selectedToDate   = api; }
             }
         }, cal.get(Calendar.YEAR), cal.get(Calendar.MONTH), cal.get(Calendar.DAY_OF_MONTH)).show();
     }
@@ -277,7 +254,9 @@ public class HistoryActivity extends BaseActivity {
     // ══════════════════════════════════════════════════════════════
 
     private void fetchHistory(String fromDate, String toDate) {
-        progressBar.setVisibility(View.VISIBLE);
+        if (swipeRefreshLayout == null || !swipeRefreshLayout.isRefreshing()) {
+            progressBar.setVisibility(View.VISIBLE);
+        }
         tvError.setVisibility(View.GONE);
         containerCards.removeAllViews();
 
@@ -298,7 +277,8 @@ public class HistoryActivity extends BaseActivity {
                 conn.setConnectTimeout(10000);
                 conn.setReadTimeout(10000);
 
-                if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                int responseCode = conn.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_OK) {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                     StringBuilder sb = new StringBuilder();
                     String line;
@@ -308,17 +288,16 @@ public class HistoryActivity extends BaseActivity {
                     Log.d(TAG, "History response: " + jsonStr.substring(0, Math.min(300, jsonStr.length())));
                     runOnUiThread(() -> parseAndDisplayHistory(jsonStr, fromDate, toDate));
                 } else {
-                    HttpURLConnection finalConn = conn;
                     runOnUiThread(() -> {
-                        try {
-                            showError("Server error: " + finalConn.getResponseCode());
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
+                        if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
+                        showError("Server error: " + responseCode);
                     });
                 }
             } catch (IOException e) {
-                runOnUiThread(() -> showError("Network error: " + e.getMessage()));
+                runOnUiThread(() -> {
+                    if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
+                    showError("Network error: " + e.getMessage());
+                });
             } finally {
                 if (conn != null) conn.disconnect();
             }
@@ -327,15 +306,18 @@ public class HistoryActivity extends BaseActivity {
 
     private void parseAndDisplayHistory(String jsonStr, String fromDate, String toDate) {
         progressBar.setVisibility(View.GONE);
+        if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
         try {
             JSONArray array = extractArray(jsonStr);
-
+            if (array == null) {
+                showError("Server error. Please try again later.");
+                return;
+            }
             if (array.length() > 0) {
                 Log.d(TAG, "History sample: " + array.getJSONObject(0).toString());
             }
 
             List<JSONObject> filtered = filterByDate(array, fromDate, toDate, "time");
-
             if (filtered.isEmpty()) {
                 showError("No records found for the selected range.");
                 return;
@@ -355,17 +337,21 @@ public class HistoryActivity extends BaseActivity {
     }
 
     private void bindHistoryCard(View card, JSONObject obj) {
-        FrameLayout   frameImage         = card.findViewById(R.id.frameImage);
-        ImageView     ivCardThumbnail    = card.findViewById(R.id.ivCardThumbnail);
-        TextView      tvStatusBadge      = card.findViewById(R.id.tvStatusBadge);
-        LinearLayout  layoutStatusNoImg  = card.findViewById(R.id.layoutStatusNoImage);
-        TextView      tvStatusNoImg      = card.findViewById(R.id.tvStatusBadgeNoImage);
-        TextView      tvCardTitle        = card.findViewById(R.id.tvCardTitle);
-        TextView      tvCardDescription  = card.findViewById(R.id.tvCardDescription);
-        TextView      tvCardDateTime     = card.findViewById(R.id.tvCardDateTime);
-        TextView      tvPhotoCount       = card.findViewById(R.id.tvPhotoCount);
+        FrameLayout  frameImage        = card.findViewById(R.id.frameImage);
+        ImageView    ivCardThumbnail   = card.findViewById(R.id.ivCardThumbnail);
+        TextView     tvStatusBadge     = card.findViewById(R.id.tvStatusBadge);
+        LinearLayout layoutStatusNoImg = card.findViewById(R.id.layoutStatusNoImage);
+        TextView     tvStatusNoImg     = card.findViewById(R.id.tvStatusBadgeNoImage);
+        TextView     tvCardTitle       = card.findViewById(R.id.tvCardTitle);
+        TextView     tvCardDescription = card.findViewById(R.id.tvCardDescription);
+        TextView     tvCardDateTime    = card.findViewById(R.id.tvCardDateTime);
+        TextView     tvPhotoCount      = card.findViewById(R.id.tvPhotoCount);
 
-        // Location
+        String postName = obj.optString("name", userName).trim();
+        if (postName.isEmpty() || postName.equals("null")) postName = userName;
+
+        String tripName = obj.optString("trip_name", "").trim();
+
         String lat = obj.optString("latitude", "").trim();
         String lng = obj.optString("longitude", "").trim();
         if (!lat.isEmpty() && !lat.equals("null") && !lng.isEmpty() && !lng.equals("null")) {
@@ -375,15 +361,19 @@ public class HistoryActivity extends BaseActivity {
             tvCardTitle.setText("Location unavailable");
         }
 
-        // Description
-        String desc = obj.optString("description", "").trim();
-        if (desc.equals("null")) desc = "";
-        tvCardDescription.setText(desc);
+        String descStr = obj.optString("description", "").trim();
+        final String desc = descStr.equals("null") ? "" : descStr;
 
-        // Date / Time
-        tvCardDateTime.setText(formatDateTime(obj.optString("time", obj.optString("created_at", ""))));
+        // UPDATE: Show trip name instead of description in the history list
+        if (!tripName.isEmpty() && !tripName.equals("null")) {
+            tvCardDescription.setText(tripName);
+        } else {
+            tvCardDescription.setText(desc);
+        }
 
-        // Status
+        String dateTimeStr = formatDateTime(obj.optString("time", obj.optString("created_at", "")));
+        tvCardDateTime.setText(dateTimeStr);
+
         String status = obj.optString("status", "").trim();
         if (!status.isEmpty() && !status.equals("null")) {
             int tint = Color.parseColor(getStatusColor(status));
@@ -394,17 +384,18 @@ public class HistoryActivity extends BaseActivity {
             tvStatusNoImg.setVisibility(View.VISIBLE);
         }
 
-        // Images
-        List<String> imageUrls = new ArrayList<>();
+        ArrayList<String> imageUrls = new ArrayList<>();
         JSONArray imgs = obj.optJSONArray("images");
         if (imgs != null) {
             for (int i = 0; i < imgs.length(); i++) {
                 String raw = imgs.optString(i, "").trim();
-                if (!raw.isEmpty() && !raw.equals("null")) imageUrls.add(raw);
+                if (!raw.isEmpty() && !raw.equals("null")) {
+                    imageUrls.add(raw.startsWith("http") ? raw : SERVER_BASE + "/" + raw);
+                }
             }
         }
         if (imageUrls.isEmpty()) {
-            for (String key : new String[]{"image1","image2","image3","image","photo","img"}) {
+            for (String key : new String[]{"image1", "image2", "image3", "image", "photo", "img"}) {
                 String raw = obj.optString(key, "").trim();
                 if (!raw.isEmpty() && !raw.equals("null") && !raw.equals("-")) {
                     imageUrls.add(raw.startsWith("http") ? raw : SERVER_BASE + "/" + raw);
@@ -416,7 +407,6 @@ public class HistoryActivity extends BaseActivity {
             frameImage.setVisibility(View.VISIBLE);
             layoutStatusNoImg.setVisibility(View.GONE);
             if (!status.isEmpty() && !status.equals("null")) tvStatusBadge.setVisibility(View.VISIBLE);
-
             Glide.with(this)
                     .load(imageUrls.get(0))
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
@@ -424,7 +414,6 @@ public class HistoryActivity extends BaseActivity {
                     .error(android.R.drawable.ic_menu_report_image)
                     .centerCrop()
                     .into(ivCardThumbnail);
-
             if (imageUrls.size() > 1) {
                 tvPhotoCount.setVisibility(View.VISIBLE);
                 tvPhotoCount.setText(imageUrls.size() + " photos");
@@ -433,6 +422,21 @@ public class HistoryActivity extends BaseActivity {
             frameImage.setVisibility(View.GONE);
             if (!status.isEmpty() && !status.equals("null")) layoutStatusNoImg.setVisibility(View.VISIBLE);
         }
+
+        final String finalName = postName;
+        final String finalTrip = tripName;
+        card.setOnClickListener(v -> {
+            Intent intent = new Intent(this, HistoryDetailActivity.class);
+            intent.putExtra("type",        "history");
+            intent.putExtra("userName",    finalName);
+            intent.putExtra("tripName",    finalTrip);
+            intent.putExtra("title",       tvCardTitle.getText().toString());
+            intent.putExtra("dateTime",    dateTimeStr);
+            intent.putExtra("status",      status);
+            intent.putExtra("description", desc);
+            intent.putStringArrayListExtra("images", imageUrls);
+            startActivity(intent);
+        });
     }
 
     // ══════════════════════════════════════════════════════════════
@@ -440,7 +444,9 @@ public class HistoryActivity extends BaseActivity {
     // ══════════════════════════════════════════════════════════════
 
     private void fetchExpenses(String fromDate, String toDate) {
-        progressBarExp.setVisibility(View.VISIBLE);
+        if (swipeRefreshLayout == null || !swipeRefreshLayout.isRefreshing()) {
+            progressBarExp.setVisibility(View.VISIBLE);
+        }
         tvErrorExp.setVisibility(View.GONE);
         containerExpenseCards.removeAllViews();
         tvTotalApproved.setText("₹0");
@@ -451,7 +457,6 @@ public class HistoryActivity extends BaseActivity {
             return;
         }
 
-        // ──  Adjust this URL to match your actual expenses API endpoint  ──
         String apiUrl = SERVER_BASE + "/jspapi/gps/getexpenses.jsp?empcode=" + employeeId;
         Log.d(TAG, "Fetching expenses: " + apiUrl);
 
@@ -464,7 +469,8 @@ public class HistoryActivity extends BaseActivity {
                 conn.setConnectTimeout(10000);
                 conn.setReadTimeout(10000);
 
-                if (conn.getResponseCode() == HttpURLConnection.HTTP_OK) {
+                int responseCode = conn.getResponseCode();
+                if (responseCode == HttpURLConnection.HTTP_OK) {
                     BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                     StringBuilder sb = new StringBuilder();
                     String line;
@@ -474,17 +480,16 @@ public class HistoryActivity extends BaseActivity {
                     Log.d(TAG, "Expenses response: " + jsonStr.substring(0, Math.min(300, jsonStr.length())));
                     runOnUiThread(() -> parseAndDisplayExpenses(jsonStr, fromDate, toDate));
                 } else {
-                    HttpURLConnection finalConn = conn;
                     runOnUiThread(() -> {
-                        try {
-                            showExpenseError("Server error: " + finalConn.getResponseCode());
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
+                        if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
+                        showExpenseError("Server error: " + responseCode);
                     });
                 }
             } catch (IOException e) {
-                runOnUiThread(() -> showExpenseError("Network error: " + e.getMessage()));
+                runOnUiThread(() -> {
+                    if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
+                    showExpenseError("Network error: " + e.getMessage());
+                });
             } finally {
                 if (conn != null) conn.disconnect();
             }
@@ -493,39 +498,45 @@ public class HistoryActivity extends BaseActivity {
 
     private void parseAndDisplayExpenses(String jsonStr, String fromDate, String toDate) {
         progressBarExp.setVisibility(View.GONE);
+        if (swipeRefreshLayout != null) swipeRefreshLayout.setRefreshing(false);
         try {
             JSONArray array = extractArray(jsonStr);
+
+            // extractArray returns null when server sends {success:false,...}
+            if (array == null) {
+                showExpenseError("No expense records found.");
+                return;
+            }
 
             if (array.length() > 0) {
                 Log.d(TAG, "Expenses sample: " + array.getJSONObject(0).toString());
             }
-
-            // Filter by date – expense entries typically have a "date" or "created_at" field
             List<JSONObject> filtered = filterByDate(array, fromDate, toDate, "date");
+            if (filtered == null) {
+                showExpenseError("No expense records found.");
+                return;
+            }
+
+            filtered.removeIf(obj -> obj.optInt("is_deleted", 0) == 1);
 
             if (filtered.isEmpty()) {
                 showExpenseError("No expense records found for the selected range.");
                 return;
             }
 
-            // Compute summary totals
             double totalApproved = 0, totalPending = 0;
             for (JSONObject obj : filtered) {
                 String status = obj.optString("status", "").trim().toLowerCase();
-                double amount = 0;
-                try { amount = Double.parseDouble(obj.optString("amount", "0").trim()); }
+                double amt = 0;
+                try { amt = Double.parseDouble(obj.optString("amount", "0").trim()); }
                 catch (NumberFormatException ignored) {}
 
-                if (status.contains("approved") || status.contains("completed")) {
-                    totalApproved += amount;
-                } else if (status.contains("pending")) {
-                    totalPending += amount;
-                }
+                if (status.contains("approved") || status.contains("completed")) totalApproved += amt;
+                else if (status.contains("pending"))                              totalPending  += amt;
             }
             tvTotalApproved.setText("₹" + (int) totalApproved);
             tvTotalPending.setText("₹" + (int) totalPending);
 
-            // Inflate expense cards
             LayoutInflater inflater = LayoutInflater.from(this);
             for (JSONObject obj : filtered) {
                 View card = inflater.inflate(R.layout.item_expense_card, containerExpenseCards, false);
@@ -539,16 +550,6 @@ public class HistoryActivity extends BaseActivity {
         }
     }
 
-    /**
-     * Binds an expense entry to item_expense_card layout.
-     *
-     * Expected JSON fields (adjust key names to match your API):
-     *   category / title  → expense name
-     *   amount            → rupee amount
-     *   date / created_at → date string
-     *   status            → approved / pending / rejected
-     *   description       → optional notes
-     */
     private void bindExpenseCard(View card, JSONObject obj) {
         TextView tvExpenseTitle  = card.findViewById(R.id.tvExpenseTitle);
         TextView tvExpenseAmount = card.findViewById(R.id.tvExpenseAmount);
@@ -556,20 +557,38 @@ public class HistoryActivity extends BaseActivity {
         TextView tvExpenseStatus = card.findViewById(R.id.tvExpenseStatus);
         TextView tvExpenseDesc   = card.findViewById(R.id.tvExpenseDesc);
 
-        // Title / category
-        String title = obj.optString("category", obj.optString("title", "Expense")).trim();
-        if (title.isEmpty() || title.equals("null")) title = "Expense";
-        tvExpenseTitle.setText(title);
+        // ── Trip name — dedicated field from API ──────────────────
+        String tripName = obj.optString("trip_name", "").trim();
+        if (tripName.isEmpty() || tripName.equals("null")) {
+            tripName = "Expense";
+        }
+        tvExpenseTitle.setText(tripName);
 
-        // Amount
+        // ── Description ───────────────────────────────────────────
+        String description = obj.optString("description", "").trim();
+        if (description.equals("null")) description = "";
+        
+        // UPDATE: Show trip name instead of description in the expense list
+        if (!tripName.isEmpty() && !tripName.equals("Expense")) {
+             tvExpenseDesc.setText(tripName);
+             tvExpenseDesc.setVisibility(View.VISIBLE);
+        } else if (!description.isEmpty()) {
+            tvExpenseDesc.setText(description);
+            tvExpenseDesc.setVisibility(View.VISIBLE);
+        } else {
+            tvExpenseDesc.setVisibility(View.GONE);
+        }
+
+        // ── Amount ────────────────────────────────────────────────
         String amount = obj.optString("amount", "0").trim();
         tvExpenseAmount.setText("₹" + amount);
 
-        // Date
+        // ── Date ──────────────────────────────────────────────────
         String dateStr = obj.optString("date", obj.optString("created_at", "")).trim();
-        tvExpenseDate.setText(formatDateTime(dateStr));
+        String formattedDate = formatDateTime(dateStr);
+        tvExpenseDate.setText(formattedDate);
 
-        // Status
+        // ── Status badge ──────────────────────────────────────────
         String status = obj.optString("status", "").trim();
         if (!status.isEmpty() && !status.equals("null")) {
             tvExpenseStatus.setText(status.toUpperCase());
@@ -579,33 +598,71 @@ public class HistoryActivity extends BaseActivity {
             tvExpenseStatus.setVisibility(View.GONE);
         }
 
-        // Description (optional)
-        String desc = obj.optString("description", "").trim();
-        if (!desc.isEmpty() && !desc.equals("null")) {
-            tvExpenseDesc.setText(desc);
-            tvExpenseDesc.setVisibility(View.VISIBLE);
-        } else {
-            tvExpenseDesc.setVisibility(View.GONE);
+        // ── Images ────────────────────────────────────────────────
+        ArrayList<String> images = new ArrayList<>();
+        JSONArray imgsArray = obj.optJSONArray("images");
+        if (imgsArray != null) {
+            for (int i = 0; i < imgsArray.length(); i++) {
+                String img = imgsArray.optString(i, "").trim();
+                if (!img.isEmpty() && !img.equals("null")) {
+                    images.add(img.startsWith("http") ? img : SERVER_BASE + "/" + img);
+                }
+            }
         }
+
+        // ── Click → detail screen ─────────────────────────────────
+        final String finalTripName = tripName;
+        final String finalDesc     = description;
+        card.setOnClickListener(v -> {
+            Intent intent = new Intent(this, HistoryDetailActivity.class);
+            intent.putExtra("type",        "expense");
+            intent.putExtra("userName",    userName);
+            intent.putExtra("tripName",    finalTripName);
+            intent.putExtra("title",       "N/A"); // Location not usually available for expenses
+            intent.putExtra("dateTime",    formattedDate);
+            intent.putExtra("status",      status);
+            intent.putExtra("description", finalDesc);
+            intent.putExtra("amount",      amount);
+            intent.putStringArrayListExtra("images", images);
+            startActivity(intent);
+        });
     }
 
     // ══════════════════════════════════════════════════════════════
     // SHARED HELPERS
     // ══════════════════════════════════════════════════════════════
 
-    /** Extracts a JSONArray from the raw response (handles root array OR object wrapper). */
-    private JSONArray extractArray(String jsonStr) throws JSONException {
+    /**
+     * Safely extract a JSONArray from the server response.
+     * Returns null (instead of throwing) if the server returned an error object
+     * like {"success":false,"message":"..."} so the UI can show a friendly message.
+     */
+    private JSONArray extractArray(String jsonStr) {
+        if (jsonStr == null || jsonStr.trim().isEmpty()) return new JSONArray();
         String trimmed = jsonStr.trim();
-        if (trimmed.startsWith("[")) return new JSONArray(trimmed);
-        JSONObject root = new JSONObject(trimmed);
-        String key = root.has("data")    ? "data"
-                : root.has("history") ? "history"
-                : root.has("records") ? "records"
-                : root.keys().next();
-        return root.getJSONArray(key);
+        try {
+            if (trimmed.startsWith("[")) {
+                return new JSONArray(trimmed);
+            }
+            // It's a JSON object — check if it's an error response
+            JSONObject root = new JSONObject(trimmed);
+            if (root.has("success") && !root.optBoolean("success", true)) {
+                // Server returned {success:false, message:"..."}
+                Log.e(TAG, "Server error: " + root.optString("message", "unknown"));
+                return null; // caller will show friendly message
+            }
+            // It's a wrapper object — unwrap the array
+            String key = root.has("data")    ? "data"
+                    : root.has("history") ? "history"
+                    : root.has("records") ? "records"
+                    : root.keys().next();
+            return root.getJSONArray(key);
+        } catch (JSONException e) {
+            Log.e(TAG, "extractArray failed: " + e.getMessage());
+            return new JSONArray(); // return empty rather than crash
+        }
     }
 
-    /** Filters a JSONArray by a date range using the given date field key. */
     private List<JSONObject> filterByDate(JSONArray array, String fromDate, String toDate,
                                           String dateKey) throws JSONException {
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
@@ -613,7 +670,7 @@ public class HistoryActivity extends BaseActivity {
         try {
             if (fromDate != null && !fromDate.isEmpty()) dFrom = sdf.parse(fromDate);
             if (toDate   != null && !toDate.isEmpty())   dTo   = sdf.parse(toDate);
-            if (dTo != null) dTo = new Date(dTo.getTime() + 24 * 60 * 60 * 1000 - 1);
+            if (dTo != null) dTo = new Date(dTo.getTime() + 24L * 60 * 60 * 1000 - 1);
         } catch (ParseException ignored) {}
 
         List<JSONObject> out = new ArrayList<>();

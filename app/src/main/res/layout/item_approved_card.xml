@@ -20,7 +20,7 @@
             android:layout_height="4dp"
             android:background="#34A853" />
 
-        <!-- ── Header: avatar + name + APPROVED badge ─────────── -->
+        <!-- Header: avatar + name + APPROVED badge -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -70,7 +70,7 @@
                     android:layout_marginTop="2dp" />
             </LinearLayout>
 
-            <!-- APPROVED badge — always green, always visible -->
+            <!-- APPROVED badge -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -85,9 +85,21 @@
                 android:background="@drawable/bg_status_badge"
                 app:backgroundTint="#34A853" />
 
+            <!-- Three dots for menu -->
+            <ImageView
+                android:id="@+id/ivDelete"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:padding="6dp"
+                android:src="@drawable/ic_more_vert"
+                app:tint="#8A93B2"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:focusable="true" />
+
         </LinearLayout>
 
-        <!-- ── Date + Location row ─────────────────────────────── -->
+        <!-- Date + Location row -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -132,7 +144,7 @@
                 android:ellipsize="end" />
         </LinearLayout>
 
-        <!-- ── Images ViewPager ────────────────────────────────── -->
+        <!-- Images ViewPager -->
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/viewPagerImages"
             android:layout_width="match_parent"
@@ -148,7 +160,7 @@
             android:layout_marginTop="4dp"
             android:visibility="gone" />
 
-        <!-- ── Description ─────────────────────────────────────── -->
+        <!-- Description -->
         <TextView
             android:id="@+id/tvCardDescription"
             android:layout_width="match_parent"
@@ -163,7 +175,7 @@
             android:maxLines="3"
             android:ellipsize="end" />
 
-        <!-- ── Timestamp ───────────────────────────────────────── -->
+        <!-- Timestamp -->
         <TextView
             android:id="@+id/tvCardTimestamp"
             android:layout_width="wrap_content"
@@ -176,7 +188,7 @@
             android:textColor="#AAAAAA"
             android:textSize="11sp" />
 
-        <!-- ── Divider ──────────────────────────────────────────── -->
+        <!-- Divider -->
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
@@ -184,7 +196,7 @@
             android:layout_marginStart="14dp"
             android:layout_marginEnd="14dp" />
 
-        <!-- ── Bottom row: approved tick + Map button ─────────── -->
+        <!-- Bottom row: confirmed tick + Map button -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -195,7 +207,6 @@
             android:paddingBottom="14dp"
             android:gravity="center_vertical">
 
-            <!-- Approved confirmed label -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -217,7 +228,6 @@
                     android:textColor="#34A853" />
             </LinearLayout>
 
-            <!-- Map button -->
             <androidx.cardview.widget.CardView
                 android:id="@+id/btnViewMap"
                 android:layout_width="wrap_content"
@@ -228,9 +238,6 @@
                 app:cardCornerRadius="19dp"
                 app:cardElevation="0dp"
                 app:cardBackgroundColor="#EEF2FF">
-
-
-
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
