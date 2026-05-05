@@ -85,7 +85,7 @@ public class HistoryActivity extends BaseActivity {
 
     private String activeTab = "history";
 
-    private static final String SERVER_BASE = "http://160.187.169.14";
+    private static final String SERVER_BASE = "http://160.187.169.24";
 
     private static final String[][] STATUS_COLORS = {
             {"approved",  "#34A853"},
@@ -265,7 +265,7 @@ public class HistoryActivity extends BaseActivity {
             return;
         }
 
-        String apiUrl = SERVER_BASE + "/jspapi/gps/gethistory.jsp?empcode=" + employeeId;
+        String apiUrl = SERVER_BASE + "/VTracker/gethistory.jsp?empcode=" + employeeId;
         Log.d(TAG, "Fetching history: " + apiUrl);
 
         executor.execute(() -> {
@@ -457,7 +457,7 @@ public class HistoryActivity extends BaseActivity {
             return;
         }
 
-        String apiUrl = SERVER_BASE + "/jspapi/gps/getexpenses.jsp?empcode=" + employeeId;
+        String apiUrl = SERVER_BASE + "/VTracker/getexpenses.jsp?empcode=" + employeeId;
         Log.d(TAG, "Fetching expenses: " + apiUrl);
 
         executor.execute(() -> {
@@ -716,7 +716,7 @@ public class HistoryActivity extends BaseActivity {
         geocodeExecutor.execute(() -> {
             HttpURLConnection conn = null;
             try {
-                String urlStr = SERVER_BASE + "/jspapi/gps/geocode.jsp?lat=" + lat + "&lng=" + lng;
+                String urlStr = SERVER_BASE + "/VTracker/geocode.jsp?lat=" + lat + "&lng=" + lng;
                 conn = (HttpURLConnection) new URL(urlStr).openConnection();
                 conn.setRequestMethod("GET");
                 conn.setConnectTimeout(8000);

@@ -42,7 +42,7 @@ import java.util.Locale;
 public class ExpensesActivity extends BaseActivity {
 
     private static final String TAG             = "ExpensesActivity";
-    private static final String SERVER_BASE     = "http://160.187.169.14";
+    private static final String SERVER_BASE     = "http://160.187.169.24";
     private static final int    CAMERA_REQUEST  = 2001;
     private static final int    GALLERY_REQUEST = 2002;
     private static final int    MAX_PHOTOS      = 5;
@@ -407,7 +407,7 @@ public class ExpensesActivity extends BaseActivity {
             HttpURLConnection conn = null;
             try {
                 String boundary = "----Boundary" + System.currentTimeMillis();
-                URL url = new URL(SERVER_BASE + "/jspapi/gps/submitexpense.jsp");
+                URL url = new URL(SERVER_BASE + "/VTracker/submitexpense.jsp");
 
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setDoInput(true);

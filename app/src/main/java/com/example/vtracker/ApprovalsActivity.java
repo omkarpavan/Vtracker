@@ -51,9 +51,9 @@ public class ApprovalsActivity extends BaseActivity {
 
     private static final String TAG = "ApprovalsActivity";
 
-    private static final String ALL_POSTS_API    = "http://160.187.169.14/jspapi/gps/getallposts.jsp";
-    private static final String ALL_EXPENSES_API = "http://160.187.169.14/jspapi/gps/getallexpenses.jsp";
-    private static final String SERVER_BASE      = "http://160.187.169.14";
+    private static final String ALL_POSTS_API    = "http://160.187.169.24/VTracker/getallposts.jsp";
+    private static final String ALL_EXPENSES_API = "http://160.187.169.24/VTracker/getallexpenses.jsp";
+    private static final String SERVER_BASE      = "http://160.187.169.24";
     private static final String PHOTO_BASE_IP    = "http://160.187.169.24";
 
     private static final String FILTER_ALL      = "all";
@@ -624,7 +624,7 @@ public class ApprovalsActivity extends BaseActivity {
         tv.setText("Approving...");
         executor.execute(() -> {
             try {
-                String url = SERVER_BASE + "/jspapi/gps/approvepost.jsp?id=" + id
+                String url = SERVER_BASE + "/VTracker/approvepost.jsp?id=" + id
                         + "&empcode=" + empcode + "&status=approved";
                 String res = httpGet(url);
                 runOnUiThread(() -> {
@@ -655,7 +655,7 @@ public class ApprovalsActivity extends BaseActivity {
         tv.setText("Approving...");
         executor.execute(() -> {
             try {
-                String url = SERVER_BASE + "/jspapi/gps/approveexpense.jsp?id=" + id
+                String url = SERVER_BASE + "/VTracker/approveexpense.jsp?id=" + id
                         + "&empcode=" + empcode + "&status=approved";
                 String res = httpGet(url);
                 runOnUiThread(() -> {
@@ -794,7 +794,7 @@ public class ApprovalsActivity extends BaseActivity {
     private void callDeletePostApi(String empcode, String time, View cardView) {
         executor.execute(() -> {
             try {
-                String urlStr = SERVER_BASE + "/jspapi/gps/deletepost.jsp?empcode=" + empcode
+                String urlStr = SERVER_BASE + "/VTracker/deletepost.jsp?empcode=" + empcode
                         + "&time=" + URLEncoder.encode(time, "UTF-8") + "&admin_id=" + adminId;
                 String body = httpGet(urlStr);
                 boolean ok  = body != null && (body.contains("true") || body.contains("deleted") || body.contains("success"));
@@ -818,7 +818,7 @@ public class ApprovalsActivity extends BaseActivity {
     private void callDeleteExpenseApi(String expId, View cardView) {
         executor.execute(() -> {
             try {
-                String urlStr = SERVER_BASE + "/jspapi/gps/deleteexpense.jsp?id=" + expId
+                String urlStr = SERVER_BASE + "/VTracker/deleteexpense.jsp?id=" + expId
                         + "&admin_id=" + adminId;
                 String body = httpGet(urlStr);
                 boolean ok  = body != null && (body.contains("true") || body.contains("deleted") || body.contains("success"));

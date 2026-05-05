@@ -71,7 +71,7 @@ public class FacultyActivity extends BaseActivity {
     private String userName   = "";
 
     // ── Same server as HistoryActivity — UNCHANGED ─────────────────
-    private static final String SERVER_BASE    = "http://160.187.169.14";
+    private static final String SERVER_BASE    = "http://160.187.169.24";
     private static final String PHOTO_API_BASE = "http://160.187.169.24/counselling_jspapi/StaffPhotos/";
 
     private final ExecutorService executor        = Executors.newSingleThreadExecutor();
@@ -242,7 +242,7 @@ public class FacultyActivity extends BaseActivity {
             try {
                 // ── SAME endpoint as HistoryActivity — UNCHANGED ──
                 String apiUrl = SERVER_BASE
-                        + "/jspapi/gps/gethistory.jsp?empcode=" + finalEmpCode;
+                        + "/VTracker/gethistory.jsp?empcode=" + finalEmpCode;
                 Log.d("FacultyActivity", "Recent activity URL: " + apiUrl);
 
                 URL url = new URL(apiUrl);
@@ -476,7 +476,7 @@ public class FacultyActivity extends BaseActivity {
         executor.execute(() -> {
             try {
                 String urlStr = SERVER_BASE
-                        + "/jspapi/gps/getnotifications.jsp?empcode=" + employeeId;
+                        + "/VTracker/getnotifications.jsp?empcode=" + employeeId;
                 HttpURLConnection conn =
                         (HttpURLConnection) new URL(urlStr).openConnection();
                 conn.setRequestMethod("GET");
@@ -520,7 +520,7 @@ public class FacultyActivity extends BaseActivity {
         geocodeExecutor.execute(() -> {
             HttpURLConnection conn = null;
             try {
-                String urlStr = SERVER_BASE + "/jspapi/gps/geocode.jsp"
+                String urlStr = SERVER_BASE + "/VTracker/geocode.jsp"
                         + "?lat=" + lat + "&lng=" + lng;
                 conn = (HttpURLConnection) new URL(urlStr).openConnection();
                 conn.setRequestMethod("GET");

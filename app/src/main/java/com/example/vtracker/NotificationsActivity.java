@@ -29,7 +29,7 @@ import java.util.concurrent.Executors;
 public class NotificationsActivity extends BaseActivity {
 
     private static final String TAG         = "NotificationsActivity";
-    private static final String SERVER_BASE = "http://160.187.169.14";
+    private static final String SERVER_BASE = "http://160.187.169.24";
 
     // ── Views — IDs match activity_notifications.xml ──────────────
     private ImageView    ivBack;          // your existing stub uses ivBack
@@ -88,7 +88,7 @@ public class NotificationsActivity extends BaseActivity {
         }
 
         String apiUrl = SERVER_BASE
-                + "/jspapi/gps/getnotifications.jsp?empcode=" + employeeId;
+                + "/VTracker/getnotifications.jsp?empcode=" + employeeId;
         Log.d(TAG, "Fetching: " + apiUrl);
 
         executor.execute(() -> {
@@ -227,7 +227,7 @@ public class NotificationsActivity extends BaseActivity {
         executor.execute(() -> {
             try {
                 String urlStr = SERVER_BASE
-                        + "/jspapi/gps/marknotificationread.jsp?id=" + notifId;
+                        + "/VTracker/marknotificationread.jsp?id=" + notifId;
                 HttpURLConnection conn =
                         (HttpURLConnection) new URL(urlStr).openConnection();
                 conn.setRequestMethod("GET");
@@ -258,7 +258,7 @@ public class NotificationsActivity extends BaseActivity {
         executor.execute(() -> {
             try {
                 String urlStr = SERVER_BASE
-                        + "/jspapi/gps/marknotificationread.jsp?empcode=" + employeeId;
+                        + "/VTracker/marknotificationread.jsp?empcode=" + employeeId;
                 HttpURLConnection conn =
                         (HttpURLConnection) new URL(urlStr).openConnection();
                 conn.setRequestMethod("GET");

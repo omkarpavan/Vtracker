@@ -29,7 +29,7 @@ import java.util.concurrent.Executors;
 public class AddFacultyActivity extends BaseActivity {
 
     private static final String TAG         = "AddFacultyActivity";
-    private static final String SERVER_BASE = "http://160.187.169.14";
+    private static final String SERVER_BASE = "http://160.187.169.24";
     private static final int    FILE_PICK   = 3001;
 
     // Views
@@ -185,7 +185,7 @@ public class AddFacultyActivity extends BaseActivity {
                         + "&designation="  + URLEncoder.encode(desig,    "UTF-8")
                         + "&qualification=" + URLEncoder.encode("",       "UTF-8");
 
-                URL url = new URL(SERVER_BASE + "/jspapi/gps/addemployee.jsp");
+                URL url = new URL(SERVER_BASE + "/VTracker/addemployee.jsp");
                 conn = (HttpURLConnection) url.openConnection();
                 conn.setRequestMethod("POST");
                 conn.setDoOutput(true);
@@ -291,7 +291,7 @@ public class AddFacultyActivity extends BaseActivity {
                 is.close();
 
                 String boundary = "----Boundary" + System.currentTimeMillis();
-                java.net.URL url = new java.net.URL(SERVER_BASE + "/jspapi/gps/bulkaddfaculty.jsp");
+                java.net.URL url = new java.net.URL(SERVER_BASE + "/VTracker/bulkaddfaculty.jsp");
                 conn = (java.net.HttpURLConnection) url.openConnection();
                 conn.setDoInput(true);
                 conn.setDoOutput(true);

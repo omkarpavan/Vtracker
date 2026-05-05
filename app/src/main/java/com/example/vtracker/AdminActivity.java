@@ -47,8 +47,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class AdminActivity extends BaseActivity {
 
     private static final String TAG           = "AdminActivity";
-    private static final String ALL_POSTS_API = "http://160.187.169.14/jspapi/gps/getallposts.jsp";
-    private static final String SERVER_BASE   = "http://160.187.169.14";
+    private static final String ALL_POSTS_API = "http://160.187.169.24/VTracker/getallposts.jsp";
+    private static final String SERVER_BASE   = "http://160.187.169.24";
     private static final String PHOTO_BASE_IP = "http://160.187.169.24";
 
     private DrawerLayout       drawerLayout;
@@ -464,7 +464,7 @@ public class AdminActivity extends BaseActivity {
         tv.setText("...");
         executor.execute(() -> {
             try {
-                String r = httpGet(SERVER_BASE + "/jspapi/gps/approvepost.jsp?id=" + id
+                String r = httpGet(SERVER_BASE + "/VTracker/approvepost.jsp?id=" + id
                         + "&empcode=" + code + "&status=approved");
                 runOnUiThread(() -> {
                     if (r != null && (r.contains("success") || r.contains("true"))) {
@@ -489,7 +489,7 @@ public class AdminActivity extends BaseActivity {
     private void callDeletePostApi(String code, String time, View card) {
         executor.execute(() -> {
             try {
-                String r = httpGet(SERVER_BASE + "/jspapi/gps/deletepost.jsp?empcode=" + code
+                String r = httpGet(SERVER_BASE + "/VTracker/deletepost.jsp?empcode=" + code
                         + "&time=" + URLEncoder.encode(time, "UTF-8") + "&admin_id=" + adminId);
                 if (r != null && (r.contains("success") || r.contains("deleted") || r.contains("true"))) {
                     runOnUiThread(() -> {
@@ -506,10 +506,8 @@ public class AdminActivity extends BaseActivity {
     }
 
     private String extractTripName(JSONObject obj) {
-        for (String k : new String[]{"trip_name", "tripname", "trip", "TripName", "TRIP_NAME"}) {
-            String v = obj.optString(k, "").trim();
-            if (!v.isEmpty() && !v.equalsIgnoreCase("null")) return v;
-        }
+        String v = obj.optString("trip_name", "").trim();
+        if (!v.isEmpty() && !v.equalsIgnoreCase("null")) return v;
         return "";
     }
 

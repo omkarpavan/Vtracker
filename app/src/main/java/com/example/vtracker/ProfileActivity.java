@@ -35,7 +35,7 @@ public class ProfileActivity extends BaseActivity {
 
     // ── APIs — UNCHANGED ───────────────────────────────────────────
     private static final String EMPLOYEE_API_BASE =
-            "http://160.187.169.14/jspapi/gps/getemployees.jsp?empcode=";
+            "http://160.187.169.24/VTracker/getemployees.jsp?empcode=";
     private static final String PHOTO_API_BASE =
             "http://160.187.169.24/counselling_jspapi/StaffPhotos/";
 

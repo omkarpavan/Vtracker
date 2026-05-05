@@ -69,7 +69,7 @@ public class PostVisitActivity extends BaseActivity {
     private static final int    MAX_PHOTOS                     = 5;
     private static final String TAG                            = "PostVisitActivity";
 
-    private static final String API_POST_WORK = "http://160.187.169.14/jspapi/gps/postwork.jsp";
+    private static final String API_POST_WORK = "http://160.187.169.14/jspapi/VTracker/postwork.jsp";
 
     private static final String LINE_END    = "\r\n";
     private static final String TWO_HYPHENS = "--";

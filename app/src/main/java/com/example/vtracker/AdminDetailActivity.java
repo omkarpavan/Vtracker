@@ -87,7 +87,7 @@ public class AdminDetailActivity extends BaseActivity {
 
                 String fullUrl = url;
                 if (!fullUrl.startsWith("http")) {
-                    fullUrl = "http://160.187.169.14" + (fullUrl.startsWith("/") ? "" : "/") + fullUrl;
+                    fullUrl = "http://160.187.169.24" + (fullUrl.startsWith("/") ? "" : "/") + fullUrl;
                 }
 
                 Glide.with(this).load(fullUrl)

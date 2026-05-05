@@ -54,13 +54,13 @@ public class LoginActivity extends BaseActivity {
     // ── API URLs ───────────────────────────────────────────────────
     // Faculty login API (existing)
     private static final String API_FACULTY =
-            "http://160.187.169.14/jspapi/gps/getemployees.jsp?empcode=";
+            "http://160.187.169.24/VTracker/getemployees.jsp?empcode=";
 
     // Admin login API 
     // Note: This was 192.168.10.25 - if you are on Mobile Data, 
     // this IP will NOT work. You need a public IP.
     private static final String API_ADMIN =
-            "http://160.187.169.14/jspapi/gps/getadmin.jsp?empcode=";
+            "http://160.187.169.24/VTracker/getadmin.jsp?empcode=";
 
     // ──────────────────────────────────────────────────────────────
     @Override

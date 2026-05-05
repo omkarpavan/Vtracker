@@ -51,9 +51,9 @@ public class AdminSearchActivity extends BaseActivity {
 
     private static final String TAG = "AdminSearchActivity";
 
-    private static final String ALL_POSTS_API    = "http://160.187.169.14/jspapi/gps/getallposts.jsp";
-    private static final String ALL_EXPENSES_API = "http://160.187.169.14/jspapi/gps/getallexpenses.jsp";
-    private static final String SERVER_BASE      = "http://160.187.169.14";
+    private static final String ALL_POSTS_API    = "http://160.187.169.24/VTracker/getallposts.jsp";
+    private static final String ALL_EXPENSES_API = "http://160.187.169.24/VTracker/getallexpenses.jsp";
+    private static final String SERVER_BASE      = "http://160.187.169.24";
     private static final String PHOTO_BASE_IP    = "http://160.187.169.24";
 
     private SwipeRefreshLayout swipeRefreshLayout;
@@ -448,7 +448,7 @@ public class AdminSearchActivity extends BaseActivity {
             Intent intent = new Intent(this, AdminDetailActivity.class);
             intent.putExtra("type", isVisit ? "history" : "expense");
             intent.putExtra("tripName", fTrip);
-            intent.putExtra("location", isVisit ? (String.format(Locale.getDefault(), "%s, %s", lat, lng)) : "Expense Submission");
+            intent.putExtra("location", isVisit ? (String.format(Locale.getDefault(), "%s, %s", lat, lng)) : "N/A");
             intent.putExtra("dateTime", fTime);
             intent.putExtra("status", fStatus);
             intent.putExtra("description", fDesc);
@@ -512,7 +512,7 @@ public class AdminSearchActivity extends BaseActivity {
         btn.setEnabled(false); tv.setText("...");
         executor.execute(() -> {
             try {
-                String res = httpGet(SERVER_BASE + "/jspapi/gps/approvepost.jsp?id=" + id + "&empcode=" + empcode + "&status=approved");
+                String res = httpGet(SERVER_BASE + "/VTracker/approvepost.jsp?id=" + id + "&empcode=" + empcode + "&status=approved");
                 runOnUiThread(() -> {
                     if (res != null && (res.contains("true") || res.contains("success"))) {
                         btn.setCardBackgroundColor(Color.parseColor("#34A853")); tv.setText("Approved ✓");
@@ -527,7 +527,7 @@ public class AdminSearchActivity extends BaseActivity {
         btn.setEnabled(false); tv.setText("...");
         executor.execute(() -> {
             try {
-                String res = httpGet(SERVER_BASE + "/jspapi/gps/approveexpense.jsp?id=" + id + "&empcode=" + empcode + "&status=approved");
+                String res = httpGet(SERVER_BASE + "/VTracker/approveexpense.jsp?id=" + id + "&empcode=" + empcode + "&status=approved");
                 runOnUiThread(() -> {
                     if (res != null && (res.contains("true") || res.contains("success"))) {
                         btn.setCardBackgroundColor(Color.parseColor("#34A853")); tv.setText("Approved ✓");
@@ -541,7 +541,7 @@ public class AdminSearchActivity extends BaseActivity {
     private void callDeletePostApi(String empcode, String time, View card) {
         executor.execute(() -> {
             try {
-                String res = httpGet(SERVER_BASE + "/jspapi/gps/deletepost.jsp?empcode=" + empcode
+                String res = httpGet(SERVER_BASE + "/VTracker/deletepost.jsp?empcode=" + empcode
                         + "&time=" + URLEncoder.encode(time, "UTF-8") + "&admin_id=" + adminId);
                 runOnUiThread(() -> {
                     if (res != null && (res.contains("true") || res.contains("deleted") || res.contains("success"))) {
@@ -556,7 +556,7 @@ public class AdminSearchActivity extends BaseActivity {
     private void callDeleteExpenseApi(String id, View card) {
         executor.execute(() -> {
             try {
-                String res = httpGet(SERVER_BASE + "/jspapi/gps/deleteexpense.jsp?id=" + id + "&admin_id=" + adminId);
+                String res = httpGet(SERVER_BASE + "/VTracker/deleteexpense.jsp?id=" + id + "&admin_id=" + adminId);
                 runOnUiThread(() -> {
                     if (res != null && (res.contains("true") || res.contains("deleted") || res.contains("success"))) {
                         if (containerResults != null) containerResults.removeView(card);
