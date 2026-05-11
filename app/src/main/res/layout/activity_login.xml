@@ -83,7 +83,7 @@
                             android:layout_gravity="center"
                             android:padding="12dp"
                             android:scaleType="fitCenter"
-                            android:src="@drawable/app_logo" />
+                            android:src="@drawable/vdiary2" />
                     </androidx.cardview.widget.CardView>
 
                     <!-- App Name -->
@@ -92,7 +92,7 @@
                         android:layout_height="wrap_content"
                         android:layout_gravity="center_horizontal"
                         android:layout_marginTop="16dp"
-                        android:text="VTracker"
+                        android:text="VDiary"
                         android:textSize="26sp"
                         android:textStyle="bold"
                         android:textColor="#0D1B4B"

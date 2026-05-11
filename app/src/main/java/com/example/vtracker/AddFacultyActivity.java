@@ -1,10 +1,16 @@
 package com.example.vtracker;
 
+import android.Manifest;
+import android.content.ContentValues;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
@@ -15,11 +21,17 @@ import android.widget.Toast;
 
 import androidx.annotation.Nullable;
 import androidx.cardview.widget.CardView;
+import androidx.core.app.ActivityCompat;
 
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -38,7 +50,7 @@ public class AddFacultyActivity extends BaseActivity {
     private CardView   cardManualForm, cardBulkUpload;
     private EditText   etFacultyName, etFacultyEmail, etFacultyPhone, etFacultyEmpId, etFacultyPassword, etFacultyDept, etFacultyDesig;
     private CardView   btnCreateUser, btnSelectFile, btnUploadCSV;
-    private TextView   tvSelectedFile;
+    private TextView   tvSelectedFile, btnDownloadSample;
     private LinearLayout navDashboard, navSearch, navApprovals, navProfile;
 
     // Data
@@ -71,26 +83,27 @@ public class AddFacultyActivity extends BaseActivity {
     }
 
     private void initViews() {
-        btnBack          = findViewById(R.id.btnBack);
-        tabAddManually   = findViewById(R.id.tabAddManually);
-        tabBulkUpload    = findViewById(R.id.tabBulkUpload);
-        cardManualForm   = findViewById(R.id.cardManualForm);
-        cardBulkUpload   = findViewById(R.id.cardBulkUpload);
-        etFacultyName    = findViewById(R.id.etFacultyName);
-        etFacultyEmail   = findViewById(R.id.etFacultyEmail);
-        etFacultyPhone   = findViewById(R.id.etFacultyPhone);
-        etFacultyEmpId   = findViewById(R.id.etFacultyEmpId);
-        etFacultyPassword= findViewById(R.id.etFacultyPassword);
-        etFacultyDept    = findViewById(R.id.etFacultyDept);
-        etFacultyDesig   = findViewById(R.id.etFacultyDesig);
-        btnCreateUser    = findViewById(R.id.btnCreateUser);
-        btnSelectFile    = findViewById(R.id.btnSelectFile);
-        btnUploadCSV     = findViewById(R.id.btnUploadCSV);
-        tvSelectedFile   = findViewById(R.id.tvSelectedFile);
-        navDashboard     = findViewById(R.id.navDashboard);
-        navSearch        = findViewById(R.id.navSearch);
-        navApprovals     = findViewById(R.id.navApprovals);
-        navProfile       = findViewById(R.id.navProfile);
+        btnBack           = findViewById(R.id.btnBack);
+        tabAddManually    = findViewById(R.id.tabAddManually);
+        tabBulkUpload     = findViewById(R.id.tabBulkUpload);
+        cardManualForm    = findViewById(R.id.cardManualForm);
+        cardBulkUpload    = findViewById(R.id.cardBulkUpload);
+        etFacultyName     = findViewById(R.id.etFacultyName);
+        etFacultyEmail    = findViewById(R.id.etFacultyEmail);
+        etFacultyPhone    = findViewById(R.id.etFacultyPhone);
+        etFacultyEmpId    = findViewById(R.id.etFacultyEmpId);
+        etFacultyPassword = findViewById(R.id.etFacultyPassword);
+        etFacultyDept     = findViewById(R.id.etFacultyDept);
+        etFacultyDesig    = findViewById(R.id.etFacultyDesig);
+        btnCreateUser     = findViewById(R.id.btnCreateUser);
+        btnSelectFile     = findViewById(R.id.btnSelectFile);
+        btnUploadCSV      = findViewById(R.id.btnUploadCSV);
+        tvSelectedFile    = findViewById(R.id.tvSelectedFile);
+        btnDownloadSample = findViewById(R.id.btnDownloadSample);
+        navDashboard      = findViewById(R.id.navDashboard);
+        navSearch         = findViewById(R.id.navSearch);
+        navApprovals      = findViewById(R.id.navApprovals);
+        navProfile        = findViewById(R.id.navProfile);
     }
 
     private void setListeners() {
@@ -103,6 +116,7 @@ public class AddFacultyActivity extends BaseActivity {
         if (btnCreateUser != null) btnCreateUser.setOnClickListener(v  -> createFaculty());
         if (btnSelectFile != null) btnSelectFile.setOnClickListener(v  -> pickCsvFile());
         if (btnUploadCSV != null) btnUploadCSV.setOnClickListener(v   -> uploadCsv());
+        if (btnDownloadSample != null) btnDownloadSample.setOnClickListener(v -> downloadSampleCsv());
 
         // Bottom nav
         if (navDashboard != null) navDashboard.setOnClickListener(v -> {
@@ -362,6 +376,54 @@ public class AddFacultyActivity extends BaseActivity {
                 });
             } finally {
                 if (conn != null) conn.disconnect();
+            }
+        });
+    }
+
+    private void downloadSampleCsv() {
+        executor.execute(() -> {
+            try {
+                InputStream is = getAssets().open("sample_faculty.csv");
+                String fileName = "sample_faculty_" + System.currentTimeMillis() + ".csv";
+                OutputStream fos = null;
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    ContentValues values = new ContentValues();
+                    values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+                    values.put(MediaStore.MediaColumns.MIME_TYPE, "text/csv");
+                    values.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+                    Uri uri = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values);
+                    if (uri != null) {
+                        fos = getContentResolver().openOutputStream(uri);
+                    }
+                } else {
+                    if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+                        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 100);
+                        return;
+                    }
+                    File downloadDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
+                    if (!downloadDir.exists()) downloadDir.mkdirs();
+                    File file = new File(downloadDir, fileName);
+                    fos = new FileOutputStream(file);
+                }
+
+                if (fos != null) {
+                    byte[] buffer = new byte[1024];
+                    int read;
+                    while ((read = is.read(buffer)) != -1) {
+                        fos.write(buffer, 0, read);
+                    }
+                    fos.flush();
+                    fos.close();
+                    is.close();
+                    runOnUiThread(() -> Toast.makeText(this, "Sample CSV saved to Downloads folder", Toast.LENGTH_LONG).show());
+                } else {
+                    throw new IOException("Failed to open output stream");
+                }
+
+            } catch (IOException e) {
+                Log.e(TAG, "Download sample error", e);
+                runOnUiThread(() -> Toast.makeText(this, "Download failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
             }
         });
     }

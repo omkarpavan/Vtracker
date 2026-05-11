@@ -38,32 +38,22 @@ public class BaseActivity extends AppCompatActivity {
                                     "Please disable Developer Options to use this app.")
                     .setCancelable(false)
                     .setPositiveButton("Go to Settings", (dialog, which) -> {
-                        logoutAndBlock();
-                        Intent intent = new Intent(
-                                Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS);
+                        // Clear session and redirect to settings, then close app tasks
+                        LoginActivity.clearSession(this);
+                        Intent intent = new Intent(Settings.ACTION_APPLICATION_DEVELOPMENT_SETTINGS);
                         startActivity(intent);
+                        finishAffinity();
                     })
                     .setNegativeButton("Exit App", (dialog, which) -> {
-                        logoutAndBlock();
+                        // Clear session and exit the app completely
+                        LoginActivity.clearSession(this);
+                        finishAffinity();
+                        // Optional: force exit to ensure process is killed
+                        System.exit(0);
                     })
                     .create();
 
             devOptionsDialog.show();
         }
-    }
-
-    // ── Clear session + close all activities ───────────────────────
-    private void logoutAndBlock() {
-        // Clear the saved login session
-        LoginActivity.clearSession(this);
-
-        Toast.makeText(this,
-                "Logged out due to security policy.", Toast.LENGTH_SHORT).show();
-
-        // Go back to login screen, clear entire back stack
-        Intent intent = new Intent(this, LoginActivity.class);
-        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        startActivity(intent);
-        finishAffinity();
     }
 }

@@ -45,7 +45,7 @@ public class ExpensesActivity extends BaseActivity {
     private static final String SERVER_BASE     = "http://160.187.169.24";
     private static final int    CAMERA_REQUEST  = 2001;
     private static final int    GALLERY_REQUEST = 2002;
-    private static final int    MAX_PHOTOS      = 5;
+    private static final int    MAX_PHOTOS      = 15;
     private static final String LINE_END        = "\r\n";
     private static final String TWO_HYPHENS     = "--";
 
